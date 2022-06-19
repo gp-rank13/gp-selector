@@ -11,8 +11,8 @@ set(CMAKE_CXX_EXTENSIONS NO)
 
 # Let's choose a name and version for the extension. Change the name to your
 # liking. The version should be a string like "1.0".
-set(PROJECT_NAME "HelloGP-JUCE") # Change this to your liking
-project(${PROJECT_NAME} VERSION 1.0)
+set(PROJECT_NAME "GPSelector") # Change this to your liking
+project(${PROJECT_NAME} VERSION 1.1)
 
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/dependencies.cmake")
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/juce-shared-library.cmake")
@@ -23,8 +23,13 @@ target_sources(
   ${PROJECT_NAME}
   PRIVATE "${CMAKE_CURRENT_LIST_DIR}/src/LibMain.cpp"
           "${CMAKE_CURRENT_LIST_DIR}/src/LibMain.h"
-          "${CMAKE_CURRENT_LIST_DIR}/src/LogWindow.cpp"
-          "${CMAKE_CURRENT_LIST_DIR}/src/LogWindow.h")
+          "${CMAKE_CURRENT_LIST_DIR}/src/ExtensionWindow.cpp"
+          "${CMAKE_CURRENT_LIST_DIR}/src/ExtensionWindow.h"
+          "${CMAKE_CURRENT_LIST_DIR}/src/LookAndFeel.h"
+          "${CMAKE_CURRENT_LIST_DIR}/src/IconPaths.h"
+          "${CMAKE_CURRENT_LIST_DIR}/src/Constants.h"
+          "${CMAKE_CURRENT_LIST_DIR}/src/Timer.h"
+          )
 target_link_libraries(
   ${PROJECT_NAME} PRIVATE gigperformer::sdk::cpp juce::juce_gui_basics
                           juce::juce_core juce::juce_events juce::juce_graphics)

@@ -1,41 +1,27 @@
-# GP Extension example for JUCE (with CMake)
+# Rackspace and Song Selector Extension for Gig Performer
 
-This is an example extension using the [Gig Performer SDK](https://github.com/gigperformer/gp-sdk).
-You can use it as a base for your own extensions developed in with JUCE in C++ and built using [CMake](https://cmake.org).
+## Overview
 
-## How to build...
+An extension for [Gig Performer](https://gigperformer.com) that provides an additional window for selecting rackspaces/variations or songs/parts. It has two display modes: a compact list of rackspaces/songs, or an expanded window with a large display of the current and previous/next rackspaces or songs.
 
-### ... on macOS
+The visibility of the window can also be controlled via widgets (e.g. it could be triggered by an external MIDI controller).
 
--   Make sure you have [CMake](https://cmake.org) installed.
-    You might have to add the path to the cmake executable by adding this line to your bash profile:
+> _Disclaimer: This is a user-created extension and is not supported by Deskew Techologies. Extensions can cause unexpected behaviour in Gig Performer, and in extreme situations could cause it to crash. Please test it thoroughly before using it in any live performances!_
 
-    ```bash
-    export PATH=/Applications/CMake.app/Contents/bin:$PATH
-    ```
+## Installation
 
-    Alternatively, you can install CMake via [Homebrew](https://brew.sh):
+Download the extension (library) files for either MacOS or Windows from the [Releases](https://github.com/gp-rank13/gp-selector/releases) page.  
 
-    ```bash
-    brew install cmake
-    ```
+Mac users will need to move the _libGPSelector.dylib_ file into this folder and then restart Gig Performer:
+```
+/Users/Shared/Gig Performer/Extensions
+```
+Windows users will need to move the _GPSelector.dll_ file into this folder and then restart Gig Performer:
+```
+C:\Users\Public\Documents\Gig Performer\Extensions
+```
+When opening Gig Perfomer, a prompt will appear asking to confirm whether to install the extension.
 
--   Build (and install) the project via CMake.
-    For your convenience we have provided a `build.sh` which contains all necessary commands:
+## Building the Extension
 
-    ```bash
-    ./build.sh
-    ```
-
-### ... on Windows
-
--   Make sure you have [CMake](https://cmake.org), [Git](https://git-scm.com) and a C(++) compiler installed.
-    You can get that for example by installing [Visual Studio](https://visualstudio.microsoft.com) with the _Desktop development with C++_ workload and the _Git for Windows_ component.
--   Build (and install) the project via CMake.
-    For your convenience we have provided a `build.cmd` which contains all necessary commands:
-
-    ```bash
-    build.cmd
-    ```
-
-    **Make sure to run the script from the Visual Studio developer command prompt!**
+To customize/build the extension, refer to the [Gig Performer SDK](https://github.com/gigperformer/gp-sdk) GitHub page.

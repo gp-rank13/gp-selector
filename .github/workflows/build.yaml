@@ -32,7 +32,7 @@ jobs:
             # To store the build extension later, we store it inside the build cache
             CMAKE_ADDITIONAL_OPTIONS: "-D 'GIG_PERFORMER_EXTENSIONS_DIRECTORY=${{ github.workspace }}/build/install'"
         steps:
-            - name: Checkout pizmidi
+            - name: Checkout
               uses: actions/checkout@v3
             - name: "Ccache"
               uses: hendrikmuhs/ccache-action@ed038da2f2f09b0c8387c00e1498290a4808da2e # v1.2.2
