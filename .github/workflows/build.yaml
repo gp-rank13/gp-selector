@@ -1,0 +1,63 @@
+name: Build
+on:
+    pull_request:
+        branches: ["main"]
+    push:
+        branches: ["main"]
+
+permissions:
+    repository-projects: read
+
+jobs:
+    build:
+        name: Plugins and Packages - ${{ matrix.config.name }}
+        runs-on: ${{ matrix.config.os }}
+        strategy:
+            # If the job fails for one config, don't abort the jobs for the other configs
+            fail-fast: false
+            matrix:
+                config:
+                    - name: "macOS - universal"
+                      os: "macos-11"
+                      cmake_preset: "mac-universal"
+                      build_config: "Release"
+                    - name: "Windows"
+                      os: "windows-2019"
+                      cmake_preset: "windows-native"
+                      build_config: "Release"
+        env:
+            # Unfortunately, Ccache is not available yet for Windows and MSVC
+            CCACHE_AVAILABLE: ${{ matrix.config.os == 'macos-11' }}
+
+            # To store the build extension later, we store it inside the build cache
+            CMAKE_ADDITIONAL_OPTIONS: "-D 'GIG_PERFORMER_EXTENSIONS_DIRECTORY=${{ github.workspace }}/build/install'"
+        steps:
+            - name: Checkout pizmidi
+              uses: actions/checkout@v3
+            - name: "Ccache"
+              uses: hendrikmuhs/ccache-action@ed038da2f2f09b0c8387c00e1498290a4808da2e # v1.2.2
+              if: env.CCACHE_AVAILABLE == 'true'
+              with:
+                  key: ${{ matrix.config.os }}-${{ matrix.config.cmake_preset }}
+                  max-size: 1536M
+            - name: "Ccache: Clear"
+              # We are triggered by the "push" event in the case of release branches.
+              # For these branches, no cache shall be used - but we still use the
+              # Ccache compiler driver in order to build up a cache that pull requests
+              # targeting this branch can use.
+              if: env.CCACHE_AVAILABLE == 'true' && github.event_name == 'push'
+              run: ccache --clear
+            - name: "Ccache: Enable compiler driver"
+              if: env.CCACHE_AVAILABLE == 'true'
+              run: echo "CMAKE_ADDITIONAL_OPTIONS=${{ env.CMAKE_ADDITIONAL_OPTIONS }} -D CMAKE_C_COMPILER_LAUNCHER=ccache -D CMAKE_CXX_COMPILER_LAUNCHER=ccache" >> $GITHUB_ENV
+            - name: "CMake: Configure"
+              run: cmake -S . --preset=${{ matrix.config.cmake_preset }} ${{ env.CMAKE_ADDITIONAL_OPTIONS }}
+            - name: "CMake: Build"
+              run: cmake --build --preset=${{ matrix.config.cmake_preset }} --config ${{ matrix.config.build_config }} --parallel
+            - name: "CMake: Install"
+              run: cmake --install build/${{ matrix.config.cmake_preset }} --config ${{ matrix.config.build_config }}
+            - name: Store extension
+              uses: actions/upload-artifact@v3
+              with:
+                  name: extension
+                  path: build/install
