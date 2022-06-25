@@ -2,7 +2,6 @@
 
 #pragma once
 
-#include <gigperformer/sdk/GPMidiMessages.h>
 #include <gigperformer/sdk/GPUtils.h>
 #include <gigperformer/sdk/GigPerformerAPI.h>
 #include <juce_gui_basics/juce_gui_basics.h>
@@ -12,11 +11,10 @@
 
 // Define an XML string describing your product
 const std::string XMLProductDescription =
-    // Replace with your information
     "<Library>"
-    "<Product Name=\"GP Selector\" Version=\"1.1\" BuildDate=\"19/6/2022\"></Product> "
+    "<Product Name=\"GP Selector\" Version=\"1.1\" BuildDate=\"26/6/2022\"></Product> "
     "<Description>Rackspace and Song Selector</Description>"
-    "<ImagePath>/Path/To/ImageFile/foo.jpg</ImagePath>"
+    "<ImagePath></ImagePath>"
     "</Library>";
 
 // Define your class here - it MUST be called LibMain and it must inherit from GigPerformerAPI
@@ -45,7 +43,6 @@ public:
     void OnStatusChanged(GPStatusType status) override; 
     void Initialization() override
     {
-
         registerCallback("OnOpen");
         registerCallback("OnClose");
         registerCallback("OnStatusChanged");
@@ -58,10 +55,8 @@ public:
         registerCallback("OnWidgetValueChanged");
 
         listenForWidget(WIDGET_SELECTOR, true);
-        listenForWidget("GPL_T1C1_LBL", true);
     }
     
-    // An XML description of your product
     std::string GetProductDescription() override; // This MUST be defined in your class
     std::vector<std::string> getRackspaceNames();
     std::vector<std::string> getVariationNames(int rackspaceIndex);
