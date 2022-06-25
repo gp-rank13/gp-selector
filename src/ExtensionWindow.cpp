@@ -6,11 +6,12 @@
 #include "IconPaths.h"
 #include "Constants.h"
 
-ExtensionWindow* ExtensionWindow::myInstance = nullptr;
+ExtensionWindow* ExtensionWindow::extension = nullptr;
+LibMain* lib = new LibMain(nullptr);     
 
 ExtensionWindow::ExtensionWindow ()
 {
-    LookAndFeel::setDefaultLookAndFeel(LnFbuttons);
+    LookAndFeel::setDefaultLookAndFeel(buttonsLnF);
     clockTimer.startTimer (1000);
     bool zeroBasedNumbering = false;
 
@@ -21,7 +22,7 @@ ExtensionWindow::ExtensionWindow ()
     addAndMakeVisible (header.get());
     header->setEditable (false, false, false);
     header->setBounds (0, 0, getWidth(), 50);
-    header->setLookAndFeel(LnFRackspaces);
+    header->setLookAndFeel(headerRackspacesLnF);
     
     label.reset (new Label ("title", ""));
     addAndMakeVisible (label.get());
@@ -93,17 +94,17 @@ ExtensionWindow::ExtensionWindow ()
     addAndMakeVisible (refreshButton.get());
 
     btnCurrent.reset (new TextButton ("btnCurrent"));
-    btnCurrent->setLookAndFeel(minLnF);
+    btnCurrent->setLookAndFeel(minimalistSongLnF);
     btnCurrent->setButtonText ("");
     btnCurrent->addListener (this);   
 
     btnPrev.reset (new TextButton ("btnPrev"));
-    btnPrev->setLookAndFeel(minLnF);
+    btnPrev->setLookAndFeel(minimalistSongLnF);
     btnPrev->setButtonText ("");
     btnPrev->addListener (this);   
 
     btnNext.reset (new TextButton ("btnNext"));
-    btnNext->setLookAndFeel(minLnF);
+    btnNext->setLookAndFeel(minimalistSongLnF);
     btnNext->setButtonText ("");
     btnNext->addListener (this);   
 
@@ -132,7 +133,7 @@ ExtensionWindow::ExtensionWindow ()
         std::string number = std::to_string(i);
         auto button = new TextButton(number); 
         subButtons.add(button);
-        subButtons[i]->setLookAndFeel(LnFsubButtons);
+        subButtons[i]->setLookAndFeel(subButtonsLnF);
         subButtons[i]->setClickingTogglesState(true);
         subButtons[i]->setRadioGroupId(2);
         subButtons[i]->getProperties().set("index", i);
@@ -161,22 +162,22 @@ ExtensionWindow::ExtensionWindow ()
     containerRight.addAndMakeVisible (btnPrev.get());
     containerRight.addAndMakeVisible (btnNext.get());
 
-    myViewport.setBounds(5, 40, 250, 50 * buttons.size());
-    myViewport.setViewedComponent(&container, false);
-    myViewportRight.setViewedComponent(&containerRight, false);
-    myViewport.getVerticalScrollBar().setColour(ScrollBar::thumbColourId, Colour (0xff2a2a2a));
-    addAndMakeVisible(myViewport);
-    addAndMakeVisible(myViewportRight);
+    viewport.setBounds(5, 40, 250, 50 * buttons.size());
+    viewport.setViewedComponent(&container, false);
+    viewportRight.setViewedComponent(&containerRight, false);
+    viewport.getVerticalScrollBar().setColour(ScrollBar::thumbColourId, Colour (0xff2a2a2a));
+    addAndMakeVisible(viewport);
+    addAndMakeVisible(viewportRight);
     addAndMakeVisible(draggableResizer);
     setSize (300, 600);
 
-    myWindow.reset(new docWindow());
-    myWindow->setContentNonOwned(this, true);
-    myWindow->setResizable(true, true);
-    myWindow->setUsingNativeTitleBar(true);
+    extensionWindow.reset(new MyDocumentWindow());
+    extensionWindow->setContentNonOwned(this, true);
+    extensionWindow->setResizable(true, true);
+    extensionWindow->setUsingNativeTitleBar(true);
 
     #if JUCE_MAC
-        myWindow->setResizeLimits(180, 250, 10000, 10000);
+        extensionWindow->setResizeLimits(180, 250, 10000, 10000);
     #else
         Image* smallImg = new Image(Image::ARGB, 22, 22, false);
         Image img;
@@ -186,9 +187,9 @@ ExtensionWindow::ExtensionWindow ()
         if (result) {
             img = ImageFileFormat::loadFrom(mo.getData(), mo.getDataSize());
         }
-        myWindow->getPeer()->setIcon(img);
-        myWindow->setResizeLimits(200, 250, 10000, 10000);
-        myWindow->setResizeLimits(200, 250, 10000, 10000);
+        extensionWindow->getPeer()->setIcon(img);
+        extensionWindow->setResizeLimits(200, 250, 10000, 10000);
+        extensionWindow->setResizeLimits(200, 250, 10000, 10000);
     #endif
 }
 
@@ -208,7 +209,7 @@ void ExtensionWindow::paint (Graphics& g)
 void ExtensionWindow::resized()
 {
     int minWindowWidth = 180;
-    Point<int> viewPos = myViewport.getViewPosition();
+    Point<int> viewPos = viewport.getViewPosition();
     int columns = 1;
     int buttonHeightRatio = 5; // Ratio of width:height
     auto& lnf = buttons[0]->getLookAndFeel();
@@ -310,9 +311,9 @@ void ExtensionWindow::resized()
     container.setBounds(0, 50, juce::jmax (minWindowWidth-10, x - 10), (buttons[0]->getHeight() + padding) * rowCount );
     containerRight.setBounds(juce::jmax (minWindowWidth-10, x - 10), 50, getWidth()- juce::jmax (minWindowWidth, x), getHeight()-50);
     
-    myViewport.setBounds(0, 50, juce::jmax (minWindowWidth, x), getHeight()-50);
-    myViewport.setViewPosition(viewPos);
-    myViewportRight.setBounds(juce::jmax (minWindowWidth, x), 50, getWidth() - juce::jmax (minWindowWidth, x), getHeight());
+    viewport.setBounds(0, 50, juce::jmax (minWindowWidth, x), getHeight()-50);
+    viewport.setViewPosition(viewPos);
+    viewportRight.setBounds(juce::jmax (minWindowWidth, x), 50, getWidth() - juce::jmax (minWindowWidth, x), getHeight());
 
     btnCurrent->setBounds (0 , containerRight.getHeight()/4, containerRight.getWidth(), containerRight.getHeight()/2);
     btnPrev->setBounds (10 , 10, containerRight.getWidth()-10, containerRight.getHeight()/4);
@@ -325,77 +326,75 @@ void ExtensionWindow::resized()
 }
 
 void ExtensionWindow::refreshUI() {
-    LibMain* gp = new LibMain(nullptr);
-    // Reset all buttons
-    for (int i = 0; i < myInstance->buttons.size(); ++i) {
-        myInstance->buttons[i]->setToggleState(false, dontSendNotification);
-        myInstance->buttons[i]->setVisible(false);
+       // Reset all buttons
+    for (int i = 0; i < extension->buttons.size(); ++i) {
+        extension->buttons[i]->setToggleState(false, dontSendNotification);
+        extension->buttons[i]->setVisible(false);
     }
     // Reset all sub buttons
-    for (size_t i = 0; i < myInstance->subButtons.size(); ++i) {
-        myInstance->subButtons[i]->setToggleState(false, dontSendNotification);
-        myInstance->subButtons[i]->setVisible(false);
+    for (size_t i = 0; i < extension->subButtons.size(); ++i) {
+        extension->subButtons[i]->setToggleState(false, dontSendNotification);
+        extension->subButtons[i]->setVisible(false);
     }
-    if (gp->inSetlistMode()) {
+    if (lib->inSetlistMode()) {
             updateButtonLabel(SONG_TITLE);
             setTitleBarName(SONG_WINDOW_TITLE);
-            updateButtonNames(gp->getSongNames());
-            selectButton(gp->getCurrentSongIndex());
-            updateSubButtonNames(gp->getSongPartNames(gp->getCurrentSongIndex()));
-            selectSubButton(gp->getCurrentSongpartIndex());
+            updateButtonNames(lib->getSongNames());
+            selectButton(lib->getCurrentSongIndex());
+            updateSubButtonNames(lib->getSongPartNames(lib->getCurrentSongIndex()));
+            selectSubButton(lib->getCurrentSongpartIndex());
     } else {
             updateButtonLabel(RACKSPACE_TITLE);
             setTitleBarName(RACKSPACE_WINDOW_TITLE);
-            updateButtonNames(gp->getRackspaceNames());
-            selectButton(gp->getCurrentRackspaceIndex());
-            updateSubButtonNames(gp->getVariationNames(gp->getCurrentRackspaceIndex()));
-            selectSubButton(gp->getCurrentVariationIndex());
+            updateButtonNames(lib->getRackspaceNames());
+            selectButton(lib->getCurrentRackspaceIndex());
+            updateSubButtonNames(lib->getVariationNames(lib->getCurrentRackspaceIndex()));
+            selectSubButton(lib->getCurrentVariationIndex());
     }
-    delete gp;
-    myInstance->resized();
+    extension->resized();
 }
 
 void ExtensionWindow::setTitleBarName(const String& name) {
-    myInstance->myWindow->setName(name);
+    extension->extensionWindow->setName(name);
 }
 
 void ExtensionWindow::setZeroBasedNumbering(bool zeroBased) {
     int offset = 1;
-    auto displayIndex = myInstance->buttons[0]->getProperties()["displayIndex"];
+    auto displayIndex = extension->buttons[0]->getProperties()["displayIndex"];
     if ((int)displayIndex == 1) {
         offset = 0;
     }
-    for (int i = 0; i < myInstance->buttons.size(); ++i) {
-        myInstance->buttons[i]->getProperties().set("displayIndex", i + offset);
+    for (int i = 0; i < extension->buttons.size(); ++i) {
+        extension->buttons[i]->getProperties().set("displayIndex", i + offset);
     }
-    myInstance->resized();
+    extension->resized();
 }
 
 void ExtensionWindow::setImmediateSwitching() {
-    bool status = myInstance->preferences->getProperty("SwitchImmediately");
-    myInstance->preferences->setProperty("SwitchImmediately", !status);     
+    bool status = extension->preferences->getProperty("SwitchImmediately");
+    extension->preferences->setProperty("SwitchImmediately", !status);     
 }
 
 String ExtensionWindow::buttonName(int index) {
     String name = "";
     if (index < buttons.size()) {
-        name = myInstance->buttons[index]->getButtonText();
+        name = extension->buttons[index]->getButtonText();
     }
     return name;
 }
 
 bool ExtensionWindow::isButtonSelected(int index) {
     bool selected = false;
-    if (index < myInstance->subButtons.size() && index >= 0) {
-        return myInstance->buttons[index]->getToggleState();
+    if (index < extension->subButtons.size() && index >= 0) {
+        return extension->buttons[index]->getToggleState();
     }
     return false;
 }
 
 int ExtensionWindow::getButtonSelected() {
     int selected = 0;
-    for (size_t i = 0; i < myInstance->buttons.size(); ++i) {
-        if (myInstance->buttons[i]->getToggleState()) {
+    for (size_t i = 0; i < extension->buttons.size(); ++i) {
+        if (extension->buttons[i]->getToggleState()) {
             selected = i;
             break;
         }
@@ -404,11 +403,11 @@ int ExtensionWindow::getButtonSelected() {
 }
 
 void ExtensionWindow::selectButton(int index) {
-    if (myInstance == nullptr) return;
-    if (index < myInstance->buttons.size() && index >= 0) {
-        myInstance->buttons[index]->setToggleState(true, dontSendNotification);
-        Rectangle<int> viewportBounds = myInstance->myViewport.getViewArea();
-        Rectangle<int> buttonBounds = myInstance->buttons[index]->getBounds();
+    if (extension == nullptr) return;
+    if (index < extension->buttons.size() && index >= 0) {
+        extension->buttons[index]->setToggleState(true, dontSendNotification);
+        Rectangle<int> viewportBounds = extension->viewport.getViewArea();
+        Rectangle<int> buttonBounds = extension->buttons[index]->getBounds();
 
         auto pad = buttonBounds.getWidth() / 40;
         pad = pad + 0.5 - (pad < 0); 
@@ -416,47 +415,47 @@ void ExtensionWindow::selectButton(int index) {
         int viewY = viewportBounds.getY() + viewportBounds.getHeight();
         int btnY = buttonBounds.getY() + buttonBounds.getHeight();
         if (btnY > viewY) {
-            myInstance->myViewport.setViewPosition(0, viewportBounds.getY() + (buttonBounds.getY() + buttonBounds.getHeight() - viewY + padding));
+            extension->viewport.setViewPosition(0, viewportBounds.getY() + (buttonBounds.getY() + buttonBounds.getHeight() - viewY + padding));
         } else if (buttonBounds.getY() < viewportBounds.getY()) {
-            myInstance->myViewport.setViewPosition(0, buttonBounds.getY() - padding);
+            extension->viewport.setViewPosition(0, buttonBounds.getY() - padding);
         }
         updatePrevCurrNext(index);
     }
 }
 
 void ExtensionWindow::updatePrevCurrNext(int index) {
-    if (index < myInstance->buttons.size() && index >= 0) {
-        String text = myInstance->buttons[index]->getButtonText();
-        myInstance->btnCurrent->setButtonText(text);
+    if (index < extension->buttons.size() && index >= 0) {
+        String text = extension->buttons[index]->getButtonText();
+        extension->btnCurrent->setButtonText(text);
         if (index > 0) {
-            text = myInstance->buttons[index-1]->getButtonText();
-            myInstance->btnPrev->setButtonText(text);
+            text = extension->buttons[index-1]->getButtonText();
+            extension->btnPrev->setButtonText(text);
         } else {
-            myInstance->btnPrev->setButtonText("");
+            extension->btnPrev->setButtonText("");
         }
-        if (index < myInstance->buttons.size()-1) {
-            text = myInstance->buttons[index+1]->getButtonText();
-            myInstance->btnNext->setButtonText(text);
+        if (index < extension->buttons.size()-1) {
+            text = extension->buttons[index+1]->getButtonText();
+            extension->btnNext->setButtonText(text);
         } else {
-            myInstance->btnNext->setButtonText("");
+            extension->btnNext->setButtonText("");
         }
     }
 }
 
 bool ExtensionWindow::isSubButtonSelected(int index) {
     bool selected = false;
-    if (index < myInstance->subButtons.size() && index >= 0) {
-        return myInstance->subButtons[index]->getToggleState();
+    if (index < extension->subButtons.size() && index >= 0) {
+        return extension->subButtons[index]->getToggleState();
     }
     return false;
 }
 
 bool ExtensionWindow::isSubButtonsCollapsed() {
     bool collapsed = true;
-    int buttonCount = myInstance->subButtons.size();
+    int buttonCount = extension->subButtons.size();
     if (buttonCount > 1) { // If only 1 button it will be collapsed by default
         for (size_t i = 0; i < buttonCount; ++i) {
-            if (myInstance->subButtons[i]->isVisible()) {
+            if (extension->subButtons[i]->isVisible()) {
                 collapsed = false;
                 break;
             }
@@ -467,94 +466,91 @@ bool ExtensionWindow::isSubButtonsCollapsed() {
 
 void ExtensionWindow::selectSubButton(int index) {
 
-    if (index < myInstance->subButtons.size() && index >= 0) {
-        myInstance->subButtons[index]->setToggleState(true, dontSendNotification);
+    if (index < extension->subButtons.size() && index >= 0) {
+        extension->subButtons[index]->setToggleState(true, dontSendNotification);
     }
 }
 
 void ExtensionWindow::updateButtonNames(std::vector<std::string> buttonNames) {
-    if (myInstance == nullptr) return;
+    if (extension == nullptr) return;
     int buttonCount = buttonNames.size();
 
-    for (size_t i = 0; i < myInstance->buttons.size(); ++i) {
+    for (size_t i = 0; i < extension->buttons.size(); ++i) {
         if (i < buttonCount) {
-            myInstance->buttons[i]->setButtonText(buttonNames[i]);
-            myInstance->buttons[i]->setVisible(true);
-            myInstance->buttons[i]->getProperties().set("colour", "0xff3f3f3f");
+            extension->buttons[i]->setButtonText(buttonNames[i]);
+            extension->buttons[i]->setVisible(true);
+            extension->buttons[i]->getProperties().set("colour", "0xff3f3f3f");
         } else {
-            myInstance->buttons[i]->setButtonText("");
-            myInstance->buttons[i]->setVisible(false);
+            extension->buttons[i]->setButtonText("");
+            extension->buttons[i]->setVisible(false);
         }
     } 
-    myInstance->resized();
+    extension->resized();
  }
 
 void ExtensionWindow::updateSubButtonNames(std::vector<std::string> buttonNames) {
-    if (myInstance == nullptr) return;
+    if (extension == nullptr) return;
     int buttonCount = buttonNames.size();
 
-    for (size_t i = 0; i < myInstance->subButtons.size(); ++i) {
+    for (size_t i = 0; i < extension->subButtons.size(); ++i) {
         if (i < buttonCount) {
-            //rackspaceName = gp->getRackspaceName(i);
-            myInstance->subButtons[i]->setButtonText(buttonNames[i]);
-            myInstance->subButtons[i]->setVisible(true);
-            myInstance->subButtons[i]->getProperties().set("colour", "0xff353535");
+            //rackspaceName = lib->getRackspaceName(i);
+            extension->subButtons[i]->setButtonText(buttonNames[i]);
+            extension->subButtons[i]->setVisible(true);
+            extension->subButtons[i]->getProperties().set("colour", "0xff353535");
         } else {
-            myInstance->subButtons[i]->setButtonText("");
-            myInstance->subButtons[i]->setVisible(false);
+            extension->subButtons[i]->setButtonText("");
+            extension->subButtons[i]->setVisible(false);
         }
     }
-    myInstance->resized();
+    extension->resized();
  }
 
 std::vector<std::string> ExtensionWindow::getSubButtonNamesByIndex(int index) {
-    LibMain* gp = new LibMain(nullptr);
     std::vector<std::string> names;
-    
-    if (gp->inSetlistMode()) {
-        names = gp->getSongPartNames(index);
+    if (lib->inSetlistMode()) {
+        names = lib->getSongPartNames(index);
     } else {
-        names = gp->getVariationNames(index);
-    }
-    delete gp;    
+        names = lib->getVariationNames(index);
+    } 
     return names;
 } 
 
 void ExtensionWindow::updateButtonNamesAndColours(std::vector<std::string> buttonNames, std::vector<std::string> buttonColours) {
-    if (myInstance == nullptr) return;
+    if (extension == nullptr) return;
     int buttonCount = buttonNames.size();
-    for (size_t i = 0; i < myInstance->buttons.size(); ++i) {
+    for (size_t i = 0; i < extension->buttons.size(); ++i) {
         if (i < buttonCount) {
-            myInstance->buttons[i]->setButtonText(buttonNames[i]);
-            myInstance->buttons[i]->setVisible(true);
+            extension->buttons[i]->setButtonText(buttonNames[i]);
+            extension->buttons[i]->setVisible(true);
             String colour = buttonColours[i];
-            myInstance->buttons[i]->getProperties().set("colour", colour);
+            extension->buttons[i]->getProperties().set("colour", colour);
         } else {
-            myInstance->buttons[i]->setButtonText("");
-            myInstance->buttons[i]->setVisible(false);
+            extension->buttons[i]->setButtonText("");
+            extension->buttons[i]->setVisible(false);
         }
     }
  }
 
 void ExtensionWindow::updateButtonLnF(std::string LnFname) {
-    if (myInstance == nullptr) return;
-    auto& lnf = myInstance->buttons[0]->getLookAndFeel();
+    if (extension == nullptr) return;
+    auto& lnf = extension->buttons[0]->getLookAndFeel();
     std::string lnfName = typeid(lnf).name();
 
     if (lnfName == typeid(buttonLookAndFeel).name()) {
-        for (size_t i = 0; i < myInstance->buttons.size(); ++i) {
-            myInstance->buttons[i]->setLookAndFeel(myInstance->LnFgridButtons);  
+        for (size_t i = 0; i < extension->buttons.size(); ++i) {
+            extension->buttons[i]->setLookAndFeel(extension->gridButtonsLnF);  
         }
     } else {
-        for (size_t i = 0; i < myInstance->buttons.size(); ++i) {
-            myInstance->buttons[i]->setLookAndFeel(myInstance->LnFbuttons);  
+        for (size_t i = 0; i < extension->buttons.size(); ++i) {
+            extension->buttons[i]->setLookAndFeel(extension->buttonsLnF);  
         }
     }
-    myInstance->resized();
+    extension->resized();
  }
 
 void ExtensionWindow::updateButtonLevel2Names(std::vector<std::vector<std::string>> buttonNames) {
-    if (myInstance == nullptr) return;
+    if (extension == nullptr) return;
     int level1Count = buttonNames.size();
     int level2Count;
     for (size_t i = 0; i < level1Count; ++i) {
@@ -563,18 +559,17 @@ void ExtensionWindow::updateButtonLevel2Names(std::vector<std::vector<std::strin
 }
 
 void ExtensionWindow::updateButtonLabel(const String& text) {
-    if (myInstance == nullptr) return;
+    if (extension == nullptr) return;
     if (text == "Songs"){ 
-        myInstance->header->setLookAndFeel(myInstance->LnFSongs);
+        extension->header->setLookAndFeel(extension->headerSongsLnF);
     } else {
-        myInstance->header->setLookAndFeel(myInstance->LnFRackspaces);
+        extension->header->setLookAndFeel(extension->headerRackspacesLnF);
     }
-    myInstance->resized();
+    extension->resized();
 }
 void ExtensionWindow::buttonClicked (Button* buttonThatWasClicked)
 {
-    LibMain* gp = new LibMain(nullptr);
-    
+       
    if (buttonThatWasClicked == sidePanelOpenButton.get() || buttonThatWasClicked == sidePanelCloseButton.get())
     {
         displayRightPanel = !displayRightPanel;
@@ -594,29 +589,29 @@ void ExtensionWindow::buttonClicked (Button* buttonThatWasClicked)
         resized();
       
     } else if (buttonThatWasClicked == btnPrev.get()) {
-        if (gp->inSetlistMode()) {
-            bool success = gp->switchToSong(juce::jmax(0, gp->getCurrentSongIndex()-1), 0);
+        if (lib->inSetlistMode()) {
+            bool success = lib->switchToSong(juce::jmax(0, lib->getCurrentSongIndex()-1), 0);
         } else {
-            bool success = gp->switchToRackspace(juce::jmax(0, gp->getCurrentRackspaceIndex()-1));
+            bool success = lib->switchToRackspace(juce::jmax(0, lib->getCurrentRackspaceIndex()-1));
         }
     } else if (buttonThatWasClicked == btnNext.get()) {
-        if (gp->inSetlistMode()) {
-            bool success = gp->switchToSong(juce::jmin(buttons.size()-1,gp->getCurrentSongIndex()+1), 0);
+        if (lib->inSetlistMode()) {
+            bool success = lib->switchToSong(juce::jmin(buttons.size()-1,lib->getCurrentSongIndex()+1), 0);
         } else {
-            bool success = gp->switchToRackspace(juce::jmin(buttons.size()-1,gp->getCurrentRackspaceIndex()+1));
+            bool success = lib->switchToRackspace(juce::jmin(buttons.size()-1,lib->getCurrentRackspaceIndex()+1));
         }
     } else if (buttonThatWasClicked == pinUnpinnedButton.get() || buttonThatWasClicked == pinPinnedButton.get()) {
-        bool newPinnedStatus = !(myInstance->myWindow->isAlwaysOnTop());
+        bool newPinnedStatus = !(extension->extensionWindow->isAlwaysOnTop());
         pinUnpinnedButton->setVisible(!newPinnedStatus);
         pinPinnedButton->setVisible(newPinnedStatus);
-        myInstance->myWindow->setAlwaysOnTop(newPinnedStatus);
+        extension->extensionWindow->setAlwaysOnTop(newPinnedStatus);
         resized();
     } else if (buttonThatWasClicked == refreshButton.get()) {
         refreshUI();
     } else if (buttonThatWasClicked->getProperties()["type"] == "button") {
         bool switchRackSongImmediately = preferences->getProperty("SwitchImmediately");
-        bool inSetlist = gp->inSetlistMode();
-        size_t currentGPIndex = (inSetlist ? gp->getCurrentSongIndex() : gp->getCurrentRackspaceIndex());
+        bool inSetlist = lib->inSetlistMode();
+        size_t currentGPIndex = (inSetlist ? lib->getCurrentSongIndex() : lib->getCurrentRackspaceIndex());
         int buttonIndex = buttonThatWasClicked->getProperties()["index"];
         std::vector<std::string> blank;
 
@@ -646,9 +641,9 @@ void ExtensionWindow::buttonClicked (Button* buttonThatWasClicked)
         }
         if (buttonIndex != currentGPIndex && switchRackSongImmediately) {
             if (inSetlist) {
-                bool success = gp->switchToSong(buttonIndex, 0);
+                bool success = lib->switchToSong(buttonIndex, 0);
             } else {
-                bool success = gp->switchToRackspace(buttonIndex, 0);
+                bool success = lib->switchToRackspace(buttonIndex, 0);
             }
             updatePrevCurrNext(buttonIndex);
         }
@@ -657,10 +652,10 @@ void ExtensionWindow::buttonClicked (Button* buttonThatWasClicked)
         bool switchRackSongImmediately = preferences->getProperty("SwitchImmediately");
         int subButtonIndex = buttonThatWasClicked->getProperties()["index"];
         int buttonIndex = getButtonSelected();
-        if (gp->inSetlistMode()) {
-            bool success = gp->switchToSong(buttonIndex, subButtonIndex);
+        if (lib->inSetlistMode()) {
+            bool success = lib->switchToSong(buttonIndex, subButtonIndex);
         } else {
-            bool success = gp->switchToRackspace(buttonIndex, subButtonIndex);
+            bool success = lib->switchToRackspace(buttonIndex, subButtonIndex);
         }
         
         // Ensure other buttons are toggled off
@@ -675,35 +670,37 @@ void ExtensionWindow::buttonClicked (Button* buttonThatWasClicked)
             refreshUI();
         }
     } else if (buttonThatWasClicked == btnModeSwitch.get()) {
-        gp->inSetlistMode() ? gp->switchToPanelView() : gp->switchToSetlistView();
+        lib->inSetlistMode() ? lib->switchToPanelView() : lib->switchToSetlistView();
     }
-    delete gp;
 }
 
 void ExtensionWindow::displayWindow(bool display) {
-    myInstance->myWindow->setVisible(display);
+    if (extension->extensionWindow->isVisible() != display) {
+        extension->extensionWindow->setVisible(display);
+        lib->setWidgetValue(WIDGET_SELECTOR, (display == true ? 1.0 : 0.0));
+    }
     if (display)
-        myInstance->myWindow->toFront(true);
+            extension->extensionWindow->toFront(true);
 }
 
 void ExtensionWindow::initialize() {
     MessageManager::getInstance()->callAsync([]() {
-        if (myInstance == nullptr) {
-            myInstance = new ExtensionWindow();
-            myInstance->myWindow->setTopLeftPosition(100, 100);
+        if (extension == nullptr) {
+            extension = new ExtensionWindow();
+            extension->extensionWindow->setTopLeftPosition(100, 100);
         }
-        jassert(myInstance != nullptr);
-        myInstance->myWindow->setVisible(false);
+        jassert(extension != nullptr);
+        extension->extensionWindow->setVisible(false);
     });
 }
 
 void ExtensionWindow::finalize()
 {
-    if (myInstance != nullptr)
-    {
-        delete myInstance;
-        myInstance = nullptr;
-    }
+    delete lib;
+    lib = nullptr;
+
+    delete extension;
+    extension = nullptr;
 }
 
 void ExtensionWindow::proccessPreferences(std::vector<std::string> keyValue) {
@@ -711,21 +708,18 @@ void ExtensionWindow::proccessPreferences(std::vector<std::string> keyValue) {
         if (keyValue[i] == "ZeroBasedNumbers") {
             setZeroBasedNumbering((keyValue[i+1] == "true" ? true : false));
         } else if (keyValue[i] == "SwitchToSongRackImmediately") {
-            myInstance->preferences->setProperty("SwitchImmediately", (keyValue[i+1] == "true" ? true : false));
+            extension->preferences->setProperty("SwitchImmediately", (keyValue[i+1] == "true" ? true : false));
             break;
         }
     }
 }
 
 void ExtensionWindow::updateClock(const String& formattedTime) {
-    myInstance->clock->setText(formattedTime, dontSendNotification);
+    extension->clock->setText(formattedTime, dontSendNotification);
 }
 
-void docWindow::closeButtonPressed () { 
-    setVisible(false); 
-    LibMain* gp = new LibMain(nullptr);
-    gp->setWidgetValue(WIDGET_SELECTOR, 0.0);
-    delete gp;
+void MyDocumentWindow::closeButtonPressed () { 
+    ExtensionWindow::displayWindow(false);
 }
 
 void MyTimer::timerCallback() {

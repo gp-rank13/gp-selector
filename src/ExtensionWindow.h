@@ -15,15 +15,15 @@ class MyDraggableComponent : public Component
 {
 public:
   MyDraggableComponent() { constrainer.setMinimumOnscreenAmounts (0xffffff, 0xffffff, 0xffffff, 0xffffff); }
-  ComponentDragger myDragger;
+  ComponentDragger dragger;
   ComponentBoundsConstrainer constrainer;
   void mouseDown (const MouseEvent& e) override
   {
-      myDragger.startDraggingComponent (this, e);
+      dragger.startDraggingComponent (this, e);
   }
   void mouseDrag (const MouseEvent& e) override
   {
-      myDragger.dragComponent (this, e, &constrainer);
+      dragger.dragComponent (this, e, &constrainer);
   }
   void paint(Graphics& g) override 
   { 
@@ -43,20 +43,20 @@ public:
   }
 };
 
-class docWindow : public DocumentWindow
+class MyDocumentWindow : public DocumentWindow
 {
   public:
-  docWindow() :
+  MyDocumentWindow() :
   DocumentWindow("GP Selecter", Colours::lightgrey, DocumentWindow::allButtons, true)
   {
-  setWantsKeyboardFocus(true);
+    setWantsKeyboardFocus(true);
   }
-  virtual ~docWindow() { }
+  virtual ~MyDocumentWindow() { }
   virtual void closeButtonPressed () override;
 };
 
-class ExtensionWindow  : public juce::Component,
-                   public juce::Button::Listener                 
+class ExtensionWindow  :  public juce::Component,
+                          public juce::Button::Listener                 
 {
 public:
   ExtensionWindow ();
@@ -96,24 +96,24 @@ public:
         resized();
     }
  
-  SharedResourcePointer<buttonLookAndFeel> LnFbuttons;
-  SharedResourcePointer<gridButtonLookAndFeel> LnFgridButtons;
-  SharedResourcePointer<headerSongs> LnFSongs;
-  SharedResourcePointer<headerRackspaces> LnFRackspaces;
+  static ExtensionWindow* extension;
+  MyDraggableComponent draggableResizer;
+  static bool zeroBasedNumbering;
+  SharedResourcePointer<buttonLookAndFeel> buttonsLnF;
+  SharedResourcePointer<gridButtonLookAndFeel> gridButtonsLnF;
+  SharedResourcePointer<headerSongs> headerSongsLnF;
+  SharedResourcePointer<headerRackspaces> headerRackspacesLnF;
   SharedResourcePointer<headerLookAndFeel> headerLnF;
-  SharedResourcePointer<subButtonLookAndFeel> LnFsubButtons;
-  SharedResourcePointer<minimalistSong> minLnF;
+  SharedResourcePointer<subButtonLookAndFeel> subButtonsLnF;
+  SharedResourcePointer<minimalistSong> minimalistSongLnF;
   SharedResourcePointer<subButtonHighlightLookAndFeel> highlightLnF;
   SharedResourcePointer<blankButtonLookAndFeel> blankLnF;
-  MyDraggableComponent draggableResizer;
-  static ExtensionWindow* myInstance;
-  static bool zeroBasedNumbering;
- 
+
  private:
   TooltipWindow tooltipWindow;
-  std::unique_ptr<docWindow> myWindow;
-  Viewport myViewport;
-  Viewport myViewportRight;
+  std::unique_ptr<MyDocumentWindow> extensionWindow;
+  Viewport viewport;
+  Viewport viewportRight;
   Component container;
   Component containerRight;
   OwnedArray<TextButton> buttons;
@@ -142,16 +142,6 @@ public:
   std::unique_ptr<ShapeButton> pinUnpinnedButton;
   std::unique_ptr<ShapeButton> pinPinnedButton;
   std::unique_ptr<ShapeButton> refreshButton;
-
-  struct Content : public Component
-    {
-        void paint (Graphics& g) override
-        {
-            g.fillAll (Colours::hotpink);
-        }
-    };
-    
-  SidePanel sidePanel { "panel", 250, true, new Content() };
 
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (ExtensionWindow)
 };
