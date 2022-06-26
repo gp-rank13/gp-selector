@@ -569,7 +569,6 @@ void ExtensionWindow::updateButtonLabel(const String& text) {
 }
 void ExtensionWindow::buttonClicked (Button* buttonThatWasClicked)
 {
-       
    if (buttonThatWasClicked == sidePanelOpenButton.get() || buttonThatWasClicked == sidePanelCloseButton.get())
     {
         displayRightPanel = !displayRightPanel;
