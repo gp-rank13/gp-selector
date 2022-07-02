@@ -28,10 +28,12 @@ public:
   void paint(Graphics& g) override 
   { 
       if (isMouseOver(true)) {
-              g.fillAll( Colour (0xff3B4D60)); 
+               g.setColour (Colour (0xff3B4D60));
       } else { 
-          g.fillAll( Colour (0xff555555)); 
+            g.setColour (Colour (0xff555555));
       } 
+      const juce::Rectangle<float> area = getLocalBounds().toFloat();
+      g.fillRect(area.withWidth(5)); // Override displayed width of separator
   }
 
   void mouseEnter (const MouseEvent&) override {

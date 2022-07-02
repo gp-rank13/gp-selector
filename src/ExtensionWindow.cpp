@@ -157,7 +157,7 @@ ExtensionWindow::ExtensionWindow ()
     container.addAndMakeVisible(highlight.get());
     draggableResizer.addMouseListener(this, true);
     draggableResizer.setMouseCursor(MouseCursor::LeftRightResizeCursor);
-    draggableResizer.setBounds (250,50, 5, getHeight());
+    draggableResizer.setBounds (250,50, 15, getHeight());
     containerRight.addAndMakeVisible (btnCurrent.get());
     containerRight.addAndMakeVisible (btnPrev.get());
     containerRight.addAndMakeVisible (btnNext.get());
@@ -225,14 +225,13 @@ void ExtensionWindow::resized()
     pad = pad + 0.5 - (pad < 0); 
     int padding = (int)pad;
     int rowHeight = 1;
-
     auto x = draggableResizer.getX();
 
-   if (!displayRightPanel) {
+    if (!displayRightPanel) {
        x = getWidth();
    }
-    draggableResizer.setBounds (juce::jmax(minWindowWidth, x), 50, 5, getHeight());   
-    
+    // Width of 15 provides a wider area to select the resizer on touchscreens. The displayed width is overridden in the Paint method of MyDraggableComponent.
+    draggableResizer.setBounds (juce::jmax(minWindowWidth, x), 50, 15, getHeight()); 
     int buttonDisplayCount = 0;
     for (int i = 0; i < buttons.size(); ++i) {
         if (buttons[i]->isVisible()) {
