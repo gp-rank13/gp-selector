@@ -19,8 +19,10 @@ const std::string RACKSPACE_WINDOW_TITLE = "Rackspace Selector";
 const std::string SONG_TITLE = "Songs";
 const std::string SONG_WINDOW_TITLE = "Song Selector";
 
-// Widget name to open/close the selector window
+// Widget names to open/close the selector window, and scroll the rackspace/song lists
 const std::string WIDGET_SELECTOR = "GP_SELECTOR";
+const std::string WIDGET_SCROLL = "GP_SELECTOR_SCROLL";
+
 // List of menu items
 const std::vector<std::string> menuNames = { "Show Selector", "Hide Selector", "Toggle Zero-Based Numbers", "Toggle Immediate Switching"}; //, "Change LnF"};
 

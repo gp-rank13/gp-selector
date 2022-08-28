@@ -681,6 +681,17 @@ void ExtensionWindow::displayWindow(bool display) {
             extension->extensionWindow->toFront(true);
 }
 
+void ExtensionWindow::scrollWindow(double value) {
+    Point<int> viewportPosition = extension->viewport.getViewPosition();
+    Rectangle<int> viewportBounds = extension->viewport.getViewArea();
+    Rectangle<int> containerBounds = extension->container.getBounds();
+    int deltaH = containerBounds.getHeight() - viewportBounds.getHeight();
+    deltaH = (deltaH < 0) ? 0 : deltaH;
+    int newY = (int) (value * (double) deltaH);
+    viewportPosition.setY(newY);
+    extension->viewport.setViewPosition(viewportPosition);
+}
+
 void ExtensionWindow::initialize() {
     MessageManager::getInstance()->callAsync([]() {
         if (extension == nullptr) {

@@ -89,6 +89,7 @@ public:
   void static setImmediateSwitching();
   String buttonName(int index);
   void static displayWindow(bool display);
+  void static scrollWindow(double value);
   void static setTitleBarName(const String& name);
   void static proccessPreferences(std::vector<std::string> keyValue);
   void static refreshUI();

@@ -12,7 +12,7 @@
 // Define an XML string describing your product
 const std::string XMLProductDescription =
     "<Library>"
-    "<Product Name=\"GP Selector\" Version=\"1.1\" BuildDate=\"26/6/2022\"></Product> "
+    "<Product Name=\"GP Selector\" Version=\"1.2\" BuildDate=\"28/8/2022\"></Product> "
     "<Description>Rackspace and Song Selector</Description>"
     "<ImagePath></ImagePath>"
     "</Library>";
@@ -55,6 +55,7 @@ public:
         registerCallback("OnWidgetValueChanged");
 
         listenForWidget(WIDGET_SELECTOR, true);
+        listenForWidget(WIDGET_SCROLL, true);
     }
     
     std::string GetProductDescription() override; // This MUST be defined in your class

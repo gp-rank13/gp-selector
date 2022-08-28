@@ -255,7 +255,9 @@ void LibMain::OnWidgetValueChanged(const std::string &widgetName, double newValu
         } else {
             ExtensionWindow::displayWindow(false);
         }
-    } 
+    } else if (widgetName == WIDGET_SCROLL) {
+            ExtensionWindow::scrollWindow(newValue);
+    }
 }
 
 // Read the key/value pairs from the preferences file
