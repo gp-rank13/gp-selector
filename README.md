@@ -35,9 +35,14 @@ After installing the extension, the selector window can be displayed or hidden v
 
 _Note: Any changes to the default options will need to be re-applied every time Gig Performer is opened._
 
-A button widget can be used to open and close the selector window. In the widget properties _Advanced_ tab, enter the name _GP_SELECTOR_. It's recommended to use the Global Rackspace for this widget.
+### Widgets
+A button widget can be used to open and close the selector window. In the widget properties _Advanced_ tab, enter the name _GP_SELECTOR_. 
 
 <img width="200" alt="gp-selector-widget" src="https://user-images.githubusercontent.com/107261652/175796753-3a9d52b3-4ef8-48fd-bc8c-f18691ca07a4.png">
+
+A knob or fader widget can be used to scroll the list of songs/rackspaces. In the widget properties _Advanced_ tab, enter the name _GP_SELECTOR_SCROLL_. Use the widget properties _Value_ tab to reverse the direction of the scrolling.
+
+It's recommended to use the Global Rackspace for these widgets.
 
 ## Building the Extension
 
