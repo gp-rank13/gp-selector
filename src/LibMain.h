@@ -12,7 +12,7 @@
 // Define an XML string describing your product
 const std::string XMLProductDescription =
     "<Library>"
-    "<Product Name=\"GP Selector\" Version=\"1.2\" BuildDate=\"28/8/2022\"></Product> "
+    "<Product Name=\"GP Selector\" Version=\"1.3\" BuildDate=\"2/9/2022\"></Product> "
     "<Description>Rackspace and Song Selector</Description>"
     "<ImagePath></ImagePath>"
     "</Library>";

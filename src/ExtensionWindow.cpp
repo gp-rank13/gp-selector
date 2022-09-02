@@ -17,6 +17,7 @@ ExtensionWindow::ExtensionWindow ()
 
     preferences.reset (new DynamicObject);
     preferences->setProperty("SwitchImmediately", true);
+    preferences->setProperty("LargeScrollArea", false);
 
     header.reset (new Label ("header", ""));
     addAndMakeVisible (header.get());
@@ -209,6 +210,7 @@ void ExtensionWindow::paint (Graphics& g)
 void ExtensionWindow::resized()
 {
     int minWindowWidth = 180;
+    int largeScrollAreaWidth = 50;
     Point<int> viewPos = viewport.getViewPosition();
     int columns = 1;
     int buttonHeightRatio = 5; // Ratio of width:height
@@ -220,7 +222,9 @@ void ExtensionWindow::resized()
     }
 
     auto bounds = container.getBounds();
-    auto buttonSize = (bounds.getWidth()) / columns;
+    //auto buttonSize = (bounds.getWidth()) / columns;
+    bool largeScrollArea = preferences->getProperty("LargeScrollArea");
+    auto buttonSize = (largeScrollArea) ? bounds.getWidth() - largeScrollAreaWidth : bounds.getWidth();
     auto pad = buttonSize / 40;
     pad = pad + 0.5 - (pad < 0); 
     int padding = (int)pad;
@@ -372,6 +376,12 @@ void ExtensionWindow::setZeroBasedNumbering(bool zeroBased) {
 void ExtensionWindow::setImmediateSwitching() {
     bool status = extension->preferences->getProperty("SwitchImmediately");
     extension->preferences->setProperty("SwitchImmediately", !status);     
+}
+
+void ExtensionWindow::setLargeScrollArea() {
+    bool status = extension->preferences->getProperty("LargeScrollArea");
+    extension->preferences->setProperty("LargeScrollArea", !status); 
+    extension->resized();    
 }
 
 String ExtensionWindow::buttonName(int index) {
@@ -665,7 +675,7 @@ void ExtensionWindow::buttonClicked (Button* buttonThatWasClicked)
 
         // Ensure large song/rackspace labels are in sync
         if (!switchRackSongImmediately) {
-            refreshUI();
+            updatePrevCurrNext(buttonIndex);
         }
     } else if (buttonThatWasClicked == btnModeSwitch.get()) {
         lib->inSetlistMode() ? lib->switchToPanelView() : lib->switchToSetlistView();

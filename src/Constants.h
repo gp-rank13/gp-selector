@@ -24,7 +24,7 @@ const std::string WIDGET_SELECTOR = "GP_SELECTOR";
 const std::string WIDGET_SCROLL = "GP_SELECTOR_SCROLL";
 
 // List of menu items
-const std::vector<std::string> menuNames = { "Show Selector", "Hide Selector", "Toggle Zero-Based Numbers", "Toggle Immediate Switching"}; //, "Change LnF"};
+const std::vector<std::string> menuNames = { "Show Selector", "Hide Selector", "Toggle Zero-Based Numbers", "Toggle Immediate Switching", "Toggle Large Scroll Area"};
 
 // Preferences file
 const std::string PREF_FILENAME = "GPSelectorPrefs.txt";

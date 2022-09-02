@@ -87,6 +87,7 @@ public:
   void static updateClock(const String& formattedTime);
   void static setZeroBasedNumbering(bool zeroBased);
   void static setImmediateSwitching();
+  void static setLargeScrollArea();
   String buttonName(int index);
   void static displayWindow(bool display);
   void static scrollWindow(double value);

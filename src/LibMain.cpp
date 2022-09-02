@@ -46,7 +46,7 @@ void LibMain::InvokeMenu(int index)
                     ExtensionWindow::setImmediateSwitching();
                     break;
                   case 4:
-                    ExtensionWindow::updateButtonLnF("gridButtons");
+                    ExtensionWindow::setLargeScrollArea();
                     break;
                   default:
                      break;   
