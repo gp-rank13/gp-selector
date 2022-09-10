@@ -97,7 +97,7 @@ public:
 		  g.setFont (font2);
       g.setColour (Colour(0xffe5e5e5));
 			g.drawFittedText (button.getButtonText (),
-				(leftIndent*4) + (numberWidth*1.5), yIndent, textWidth-(leftIndent*20), button.getHeight () - yIndent * 2,
+				leftIndent + numberWidth, yIndent, textWidth-(leftIndent*20), button.getHeight () - yIndent * 2,
 				Justification::left, rows, 1.0f);
     }
 	}
