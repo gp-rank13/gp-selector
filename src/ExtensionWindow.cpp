@@ -8,6 +8,7 @@
 
 ExtensionWindow* ExtensionWindow::extension = nullptr;
 LibMain* lib = new LibMain(nullptr);     
+StringPairArray buttonColors;
 
 ExtensionWindow::ExtensionWindow ()
 {
@@ -362,23 +363,36 @@ void ExtensionWindow::setTitleBarName(const String& name) {
 }
 
 void ExtensionWindow::setZeroBasedNumbering(bool zeroBased) {
-    int offset = 1;
-    auto displayIndex = extension->buttons[0]->getProperties()["displayIndex"];
-    if ((int)displayIndex == 1) {
-        offset = 0;
-    }
+    extension->preferences->setProperty("ZeroBasedNumbers", zeroBased); 
+    int offset = (zeroBased == true) ? 0 : 1;
     for (int i = 0; i < extension->buttons.size(); ++i) {
         extension->buttons[i]->getProperties().set("displayIndex", i + offset);
     }
     extension->resized();
 }
 
-void ExtensionWindow::setImmediateSwitching() {
-    bool status = extension->preferences->getProperty("SwitchImmediately");
-    extension->preferences->setProperty("SwitchImmediately", !status);     
+void ExtensionWindow::toggleZeroBasedNumbering() {
+    bool status = extension->preferences->getProperty("ZeroBasedNumbers");
+    extension->preferences->setProperty("ZeroBasedNumbers", !status); 
+    setZeroBasedNumbering(!status);
 }
 
-void ExtensionWindow::setLargeScrollArea() {
+
+void ExtensionWindow::setImmediateSwitching(bool immediateSwitch) {
+    extension->preferences->setProperty("ImmediateSwitching", immediateSwitch);     
+}
+
+void ExtensionWindow::toggleImmediateSwitching() {
+    bool status = extension->preferences->getProperty("ImmediateSwitching");
+    extension->preferences->setProperty("ImmediateSwitching", !status);     
+}
+
+void ExtensionWindow::setLargeScrollArea(bool largeScrollArea) {
+    extension->preferences->setProperty("LargeScrollArea", largeScrollArea); 
+    extension->resized();    
+}
+
+void ExtensionWindow::toggleLargeScrollArea() {
     bool status = extension->preferences->getProperty("LargeScrollArea");
     extension->preferences->setProperty("LargeScrollArea", !status); 
     extension->resized();    
@@ -500,16 +514,28 @@ void ExtensionWindow::updateButtonNames(std::vector<std::string> buttonNames) {
 void ExtensionWindow::updateSubButtonNames(std::vector<std::string> buttonNames) {
     if (extension == nullptr) return;
     int buttonCount = buttonNames.size();
-
-    for (size_t i = 0; i < extension->subButtons.size(); ++i) {
+    for (auto i = 0; i < extension->subButtons.size(); ++i) {
         if (i < buttonCount) {
-            //rackspaceName = lib->getRackspaceName(i);
             extension->subButtons[i]->setButtonText(buttonNames[i]);
             extension->subButtons[i]->setVisible(true);
-            extension->subButtons[i]->getProperties().set("colour", "0xff353535");
+            StringArray keys = buttonColors.getAllKeys();
+            String color = "ff353535";
+            String name = buttonNames[i];
+            for (int j = 0; j < keys.size(); ++j ) {
+                if (name.contains(keys[j])) {
+                    color = buttonColors.getValue(keys[j],"");
+                    if (extension->preferences->getProperty("RemoveColorKeywordFromName")) {
+                        name = name.replace(keys[j], "");
+                        name = name.replace("  ", " ");
+                        extension->subButtons[i]->setButtonText(name);
+                    }
+                }
+            }
+            extension->subButtons[i]->getProperties().set("colour", color);
         } else {
             extension->subButtons[i]->setButtonText("");
             extension->subButtons[i]->setVisible(false);
+            extension->subButtons[i]->getProperties().set("colour", "FF353535");
         }
     }
     extension->resized();
@@ -722,15 +748,21 @@ void ExtensionWindow::finalize()
     extension = nullptr;
 }
 
-void ExtensionWindow::proccessPreferences(std::vector<std::string> keyValue) {
-    for (size_t i = 0; i < keyValue.size(); ++i) {
-        if (keyValue[i] == "ZeroBasedNumbers") {
-            setZeroBasedNumbering((keyValue[i+1] == "true" ? true : false));
-        } else if (keyValue[i] == "SwitchToSongRackImmediately") {
-            extension->preferences->setProperty("SwitchImmediately", (keyValue[i+1] == "true" ? true : false));
-            break;
-        }
-    }
+void ExtensionWindow::processPreferencesDefaults(StringPairArray prefs) {
+    setZeroBasedNumbering(prefs.getValue("ZeroBasedNumbers", "") == "true" ? true : false);
+    extension->preferences->setProperty("ImmediateSwitching", prefs.getValue("ImmediateSwitching", "") == "false" ? false : true);
+    setLargeScrollArea(prefs.getValue("LargeScrollArea", "") == "true" ? true : false);
+    removeColorKeywordFromName(prefs.getValue("RemoveColorKeywordFromName", "") == "true" ? true : false); 
+}
+
+void ExtensionWindow::processPreferencesColors(StringPairArray prefs) {
+    buttonColors.addArray(prefs);
+}
+
+void ExtensionWindow::removeColorKeywordFromName(bool remove) {
+
+    extension->preferences->setProperty("RemoveColorKeywordFromName", remove); 
+
 }
 
 void ExtensionWindow::updateClock(const String& formattedTime) {

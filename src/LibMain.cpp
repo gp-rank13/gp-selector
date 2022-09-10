@@ -40,13 +40,13 @@ void LibMain::InvokeMenu(int index)
                      ExtensionWindow::displayWindow(false);
                      break;
                   case 2:
-                    ExtensionWindow::setZeroBasedNumbering(true);
+                    ExtensionWindow::toggleZeroBasedNumbering();
                     break;
                   case 3:
-                    ExtensionWindow::setImmediateSwitching();
+                    ExtensionWindow::toggleImmediateSwitching();
                     break;
                   case 4:
-                    ExtensionWindow::setLargeScrollArea();
+                    ExtensionWindow::toggleLargeScrollArea();
                     break;
                   default:
                      break;   
@@ -84,58 +84,6 @@ std::vector<std::string> LibMain::getRackspaceNames() {
     return rackspaceNames;
 }
 
-std::vector<std::string> LibMain::getRackspaceColours() {
-    std::vector<std::string> rackspaceColours;
-    std::string rackspaceColour;
-    std::string rackspaceName;
-
-    // Get colours from prefs file
-    std::string text;
-    gigperformer::sdk::GPUtils::loadTextFile(getPathToMe() + separator() + "prefsGPSelecter.txt", text);
-    std::stringstream ss(text);
-    std::vector<std::string> splitText;
-
-    while(ss.good())
-    {
-        std::string csv;
-        getline(ss, csv, '\n');
-
-       // Check for properly formed key/value pair: key=value
-       std::size_t found = csv.find("=");
-       if (found != std::string::npos) {
-            // Split key and value
-            std::string key = csv.substr(0, found);
-            std::string value = csv.substr(found+1, csv.length() - found);
-            // Remove leading and trailing spaces
-            key = std::regex_replace(key, std::regex("^ +| +$|( ) +"), "$1");
-            value = std::regex_replace(value, std::regex("^ +| +$|( ) +"), "$1");
-            if (value.substr(0,1) == "#") {
-                value.replace(0,1,"0xff");
-            }
-
-            splitText.push_back(key);
-            splitText.push_back(value);
-       }
-    }
-
-    std::string defaultColour = "0xff3f3f3f";
-    for (int i = 0; i < getRackspaceCount(); ++i) { 
-        rackspaceName = getRackspaceName(i);
-        for (int j = 0; j < splitText.size(); ++j) {
-            int found = rackspaceName.find(splitText[j]);
-            if (found != std::string::npos) {
-                rackspaceColours.push_back(splitText[j+1]);
-            } 
-        }
-
-        if (rackspaceColours.size() < i + 1) {
-            rackspaceColours.push_back(defaultColour);
-        }
-    }
-    
-    return rackspaceColours;
-}
-
 std::vector<std::string> LibMain::getVariationNames(int rackspaceIndex) {
     std::vector<std::string> variationNames;
     std::string variationName;
@@ -163,6 +111,7 @@ void LibMain::OnStatusChanged(GPStatusType status) {
             break;
         case GPStatus_GigFinishedLoading:
             isGigFileLoading = false;
+            readPreferencesFile();
             ExtensionWindow::refreshUI();
             break;
         default:
@@ -244,6 +193,7 @@ void LibMain::OnSetlistChanged(const std::string &newSetlistName) {
 
 void LibMain::OnModeChanged(int mode) {
     if (isGigFileLoading) return;
+    readPreferencesFile();
     ExtensionWindow::refreshUI();
 }
 
@@ -260,35 +210,35 @@ void LibMain::OnWidgetValueChanged(const std::string &widgetName, double newValu
     }
 }
 
-// Read the key/value pairs from the preferences file
-std::vector<std::string> LibMain::readPreferencesFile() {
-    std::string text;
-    gigperformer::sdk::GPUtils::loadTextFile(getPathToMe() + separator() + PREF_FILENAME, text);
-    std::stringstream ss(text);
-    std::vector<std::string> splitText;
-
-    while(ss.good())
-    {
-        std::string csv;
-        getline(ss, csv, '\n');
-
-       // Check for properly formed key/value pair: key=value
-       std::size_t found = csv.find("=");
-       if (found != std::string::npos) {
-            // Split key and value
-            std::string key = csv.substr(0, found);
-            std::string value = csv.substr(found+1, csv.length() - found);
-            // Remove leading and trailing spaces
-            key = std::regex_replace(key, std::regex("^ +| +$|( ) +"), "$1");
-            value = std::regex_replace(value, std::regex("^ +| +$|( ) +"), "$1");
-            if (value.substr(0,1) == "#") {
-                value.replace(0,1,"0xff");
+void LibMain::readPreferencesFile() {
+    std::string prefsFileText;
+    gigperformer::sdk::GPUtils::loadTextFile(getPathToMe() + separator() + PREF_FILENAME, prefsFileText);
+    StringArray lines = StringArray::fromLines(prefsFileText);
+    StringArray keyValue;
+    StringPairArray defaults;
+    StringPairArray colors;
+    String line;
+    String prefSection;
+    for (int i = 0; i < lines.size(); ++i) { 
+        line = lines[i].toStdString();
+        if (line.contains("[")) { // Preference Heading/Section
+            if (line.contains("[Defaults]")) {
+                prefSection = "Defaults";
+            } else if (line.contains("[Colors]")) {
+                prefSection = "Colors";
             }
-            splitText.push_back(key);
-            splitText.push_back(value);
-       }
+        } else if (line.trim() != "") { // Process Preferences, assuming key/value pairs
+            line = line.removeCharacters(" ");
+            keyValue = StringArray::fromTokens(line,"=","");
+            if (prefSection == "Defaults") {
+                defaults.set(keyValue[0], keyValue[1]);
+            } else {
+                colors.set(keyValue[0], keyValue[1]);
+            }
+        }
     }
-    return splitText;
+    ExtensionWindow::processPreferencesDefaults(defaults);
+    ExtensionWindow::processPreferencesColors(colors);
 }
 
 std::string LibMain::GetProductDescription()  // This MUST be defined in your class

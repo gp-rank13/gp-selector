@@ -86,13 +86,18 @@ public:
   void static selectButtonAndSubButton(int index, std::vector<std::string> buttonNames);
   void static updateClock(const String& formattedTime);
   void static setZeroBasedNumbering(bool zeroBased);
-  void static setImmediateSwitching();
-  void static setLargeScrollArea();
+  void static setImmediateSwitching(bool immediateSwitch);
+  void static setLargeScrollArea(bool largeScrollArea);
+  void static toggleZeroBasedNumbering();
+  void static toggleImmediateSwitching();
+  void static toggleLargeScrollArea();  
   String buttonName(int index);
   void static displayWindow(bool display);
   void static scrollWindow(double value);
   void static setTitleBarName(const String& name);
-  void static proccessPreferences(std::vector<std::string> keyValue);
+  void static processPreferencesDefaults(StringPairArray prefs);
+  void static processPreferencesColors(StringPairArray prefs);
+  void static removeColorKeywordFromName(bool remove);
   void static refreshUI();
   void static updateButtonLnF(std::string LnFname);
   void mouseDrag (const MouseEvent& e) override

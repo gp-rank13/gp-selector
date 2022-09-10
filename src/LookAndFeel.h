@@ -62,7 +62,7 @@ public:
     g.fillRoundedRectangle (buttonArea, cornerSize);
     if (button.getToggleState()) {
       g.setColour (Colours::white);
-      g.drawRoundedRectangle (buttonArea, cornerSize, 1.f);  
+      g.drawRoundedRectangle (buttonArea, cornerSize, 2.f);  
     }               
   }
 };
@@ -112,16 +112,27 @@ public:
     myColour = Colour::fromString(btnColour);
 
     if (button.getToggleState()) {
-      g.setColour (Colour(0xff6A6A6A));
-      
+      if (myColour == Colour(0xff353535)) {
+        g.setColour (Colour(0xff6A6A6A));
+      } else {
+        g.setColour (myColour);
+      }      
     } else if (isButtonHighlighted && !isButtonDown) {
-      g.setColour (Colour(0xff2f2f2f));
+      if (myColour == Colour(0xff353535)) {
+        g.setColour (myColour.withBrightness(myColour.getBrightness() + 0.1f));
+      } else {
+        g.setColour (myColour.withBrightness(myColour.getBrightness() - 0.1f));
+      }
     } else if (isButtonDown) {
       g.setColour (Colour(0xff9a9a9a));
     } else {
       g.setColour (myColour);
     }   
-    g.fillRoundedRectangle (buttonArea, cornerSize);     
+    g.fillRoundedRectangle (buttonArea, cornerSize);  
+    if (button.getToggleState()) {
+      g.setColour (Colour(0xffe5e5e5));
+      g.drawRoundedRectangle (buttonArea, cornerSize, 2.f);  
+    }            
   }
 };
 
@@ -224,7 +235,7 @@ public:
 class headerSongs : public LookAndFeel_V4 {
 public:
   void drawLabel (Graphics& g, Label& label) {
-    g.fillAll (Colour (0xff935a31));
+    g.fillAll (Colour (0xff894B28));
     auto labelArea = label.getLocalBounds();
     g.setFont (Font (25.00f, Font::plain).withTypefaceStyle ("Regular"));
     g.setColour (Colours::white);

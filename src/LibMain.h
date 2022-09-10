@@ -5,14 +5,13 @@
 #include <gigperformer/sdk/GPUtils.h>
 #include <gigperformer/sdk/GigPerformerAPI.h>
 #include <juce_gui_basics/juce_gui_basics.h>
-
 #include "ExtensionWindow.h"
 #include "Constants.h"
 
 // Define an XML string describing your product
 const std::string XMLProductDescription =
     "<Library>"
-    "<Product Name=\"GP Selector\" Version=\"1.3\" BuildDate=\"2/9/2022\"></Product> "
+    "<Product Name=\"GP Selector\" Version=\"1.4\" BuildDate=\"10/9/2022\"></Product> "
     "<Description>Rackspace and Song Selector</Description>"
     "<ImagePath></ImagePath>"
     "</Library>";
@@ -64,7 +63,6 @@ public:
     std::vector<std::string> getSongNames();
     std::vector<std::string> getSongPartNames(int songIndex);
 private:
-    std::vector<std::string> getRackspaceColours();
-    std::vector<std::string> readPreferencesFile();
     std::vector<std::vector<std::string>> getAllVariationNames();
+    void readPreferencesFile();
 };
