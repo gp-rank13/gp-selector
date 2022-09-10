@@ -11,7 +11,7 @@
 // Define an XML string describing your product
 const std::string XMLProductDescription =
     "<Library>"
-    "<Product Name=\"GP Selector\" Version=\"1.4\" BuildDate=\"10/9/2022\"></Product> "
+    "<Product Name=\"GP Selector\" Version=\"1.3\" BuildDate=\"10/9/2022\"></Product> "
     "<Description>Rackspace and Song Selector</Description>"
     "<ImagePath></ImagePath>"
     "</Library>";
@@ -64,5 +64,5 @@ public:
     std::vector<std::string> getSongPartNames(int songIndex);
 private:
     std::vector<std::vector<std::string>> getAllVariationNames();
-    void readPreferencesFile();
+    void readPreferencesFile(std::string onlySection);
 };

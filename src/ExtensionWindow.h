@@ -74,8 +74,6 @@ public:
   void static updateButtonNames(std::vector<std::string> buttonNames);
   void static updateSubButtonNames(std::vector<std::string> buttonNames);
   std::vector<std::string> getSubButtonNamesByIndex(int index);
-  void static updateButtonNamesAndColours(std::vector<std::string> buttonNames, std::vector<std::string> buttonColours);
-  void static updateButtonLevel2Names(std::vector<std::vector<std::string>> buttonNames);
   bool static isButtonSelected(int index);
   int static getButtonSelected();
   void static selectButton(int index);
@@ -127,13 +125,12 @@ public:
   Component containerRight;
   OwnedArray<TextButton> buttons;
   OwnedArray<TextButton> subButtons;
+  StringPairArray buttonColors;
   MyTimer clockTimer;
   bool displayRightPanel = false;
   bool displayWindowOnLoad = false;
   std::unique_ptr<int> switchImmediately;
   int prevButtonSelected = 0;
-  juce::OwnedArray<juce::OwnedArray<juce::TextButton>> buttonsLevel2;
-
   std::unique_ptr<Label> label;
   std::unique_ptr<Label> highlight;
   std::unique_ptr<Label> header;

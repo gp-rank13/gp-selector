@@ -8,7 +8,6 @@
 
 ExtensionWindow* ExtensionWindow::extension = nullptr;
 LibMain* lib = new LibMain(nullptr);     
-StringPairArray buttonColors;
 
 ExtensionWindow::ExtensionWindow ()
 {
@@ -521,12 +520,12 @@ void ExtensionWindow::updateSubButtonNames(std::vector<std::string> buttonNames)
         if (i < buttonCount) {
             extension->subButtons[i]->setButtonText(buttonNames[i]);
             extension->subButtons[i]->setVisible(true);
-            StringArray keys = buttonColors.getAllKeys();
+            StringArray keys = extension->buttonColors.getAllKeys();
             String color = "ff353535";
             String name = buttonNames[i];
             for (int j = 0; j < keys.size(); ++j ) {
                 if (name.contains(keys[j])) {
-                    color = buttonColors.getValue(keys[j],"");
+                    color = extension->buttonColors.getValue(keys[j],"");
                     if (extension->preferences->getProperty("RemoveColorKeywordFromName")) {
                         name = name.replace(keys[j], "");
                         name = name.replace("  ", " ");
@@ -554,22 +553,6 @@ std::vector<std::string> ExtensionWindow::getSubButtonNamesByIndex(int index) {
     return names;
 } 
 
-void ExtensionWindow::updateButtonNamesAndColours(std::vector<std::string> buttonNames, std::vector<std::string> buttonColours) {
-    if (extension == nullptr) return;
-    int buttonCount = buttonNames.size();
-    for (size_t i = 0; i < extension->buttons.size(); ++i) {
-        if (i < buttonCount) {
-            extension->buttons[i]->setButtonText(buttonNames[i]);
-            extension->buttons[i]->setVisible(true);
-            String colour = buttonColours[i];
-            extension->buttons[i]->getProperties().set("colour", colour);
-        } else {
-            extension->buttons[i]->setButtonText("");
-            extension->buttons[i]->setVisible(false);
-        }
-    }
- }
-
 void ExtensionWindow::updateButtonLnF(std::string LnFname) {
     if (extension == nullptr) return;
     auto& lnf = extension->buttons[0]->getLookAndFeel();
@@ -586,15 +569,6 @@ void ExtensionWindow::updateButtonLnF(std::string LnFname) {
     }
     extension->resized();
  }
-
-void ExtensionWindow::updateButtonLevel2Names(std::vector<std::vector<std::string>> buttonNames) {
-    if (extension == nullptr) return;
-    int level1Count = buttonNames.size();
-    int level2Count;
-    for (size_t i = 0; i < level1Count; ++i) {
-        level2Count = buttonNames[i].size();        
-    }
-}
 
 void ExtensionWindow::updateButtonLabel(const String& text) {
     if (extension == nullptr) return;
@@ -759,13 +733,11 @@ void ExtensionWindow::processPreferencesDefaults(StringPairArray prefs) {
 }
 
 void ExtensionWindow::processPreferencesColors(StringPairArray prefs) {
-    buttonColors.addArray(prefs);
+    extension->buttonColors.addArray(prefs);
 }
 
 void ExtensionWindow::removeColorKeywordFromName(bool remove) {
-
     extension->preferences->setProperty("RemoveColorKeywordFromName", remove); 
-
 }
 
 void ExtensionWindow::updateClock(const String& formattedTime) {

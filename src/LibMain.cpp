@@ -111,7 +111,7 @@ void LibMain::OnStatusChanged(GPStatusType status) {
             break;
         case GPStatus_GigFinishedLoading:
             isGigFileLoading = false;
-            readPreferencesFile();
+            readPreferencesFile("");
             ExtensionWindow::refreshUI();
             break;
         default:
@@ -193,7 +193,7 @@ void LibMain::OnSetlistChanged(const std::string &newSetlistName) {
 
 void LibMain::OnModeChanged(int mode) {
     if (isGigFileLoading) return;
-    readPreferencesFile();
+    readPreferencesFile("colors");
     ExtensionWindow::refreshUI();
 }
 
@@ -210,7 +210,7 @@ void LibMain::OnWidgetValueChanged(const std::string &widgetName, double newValu
     }
 }
 
-void LibMain::readPreferencesFile() {
+void LibMain::readPreferencesFile(std::string onlySection = "") {
     std::string prefsFileText;
     gigperformer::sdk::GPUtils::loadTextFile(getPathToMe() + separator() + PREF_FILENAME, prefsFileText);
     StringArray lines = StringArray::fromLines(prefsFileText);
@@ -237,8 +237,12 @@ void LibMain::readPreferencesFile() {
             }
         }
     }
-    ExtensionWindow::processPreferencesDefaults(defaults);
-    ExtensionWindow::processPreferencesColors(colors);
+    if (onlySection == "defaults" || onlySection == "") {
+        ExtensionWindow::processPreferencesDefaults(defaults);
+    } 
+    if (onlySection == "colors" || onlySection == "") {
+        ExtensionWindow::processPreferencesColors(colors);
+    }
 }
 
 std::string LibMain::GetProductDescription()  // This MUST be defined in your class
