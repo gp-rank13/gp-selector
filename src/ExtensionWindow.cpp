@@ -17,8 +17,11 @@ ExtensionWindow::ExtensionWindow ()
     bool zeroBasedNumbering = false;
 
     preferences.reset (new DynamicObject);
-    preferences->setProperty("SwitchImmediately", true);
+    preferences->setProperty("ImmediateSwitching", true);
     preferences->setProperty("LargeScrollArea", false);
+    preferences->setProperty("ZeroBasedNumbers", false);
+    preferences->setProperty("RemoveColorKeywordFromName", false);
+
 
     header.reset (new Label ("header", ""));
     addAndMakeVisible (header.get());
@@ -643,7 +646,7 @@ void ExtensionWindow::buttonClicked (Button* buttonThatWasClicked)
     } else if (buttonThatWasClicked == refreshButton.get()) {
         refreshUI();
     } else if (buttonThatWasClicked->getProperties()["type"] == "button") {
-        bool switchRackSongImmediately = preferences->getProperty("SwitchImmediately");
+        bool switchRackSongImmediately = preferences->getProperty("ImmediateSwitching");
         bool inSetlist = lib->inSetlistMode();
         size_t currentGPIndex = (inSetlist ? lib->getCurrentSongIndex() : lib->getCurrentRackspaceIndex());
         int buttonIndex = buttonThatWasClicked->getProperties()["index"];
@@ -683,7 +686,7 @@ void ExtensionWindow::buttonClicked (Button* buttonThatWasClicked)
         }
         prevButtonSelected = buttonIndex;
     } else if (buttonThatWasClicked->getProperties()["type"] == "subButton") {
-        bool switchRackSongImmediately = preferences->getProperty("SwitchImmediately");
+        bool switchRackSongImmediately = preferences->getProperty("ImmediateSwitching");
         int subButtonIndex = buttonThatWasClicked->getProperties()["index"];
         int buttonIndex = getButtonSelected();
         if (lib->inSetlistMode()) {
