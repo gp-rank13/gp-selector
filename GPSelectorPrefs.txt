@@ -1,0 +1,11 @@
+[Defaults]
+ZeroBasedNumbers = false
+ImmediateSwitching = true
+LargeScrollArea = false
+RemoveColorKeywordFromName = false
+PositionAndSize = 100,100,300,600
+
+[Colors]
+Clean = FF346573
+Crunch = FFBF6509
+Lead = FF960303

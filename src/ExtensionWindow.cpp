@@ -12,7 +12,8 @@ LibMain* lib = new LibMain(nullptr);
 ExtensionWindow::ExtensionWindow ()
 {
     LookAndFeel::setDefaultLookAndFeel(buttonsLnF);
-    clockTimer.startTimer (1000);
+    clockTimer.startTimer (5000);
+    refreshTimer.startTimer(1000);
     bool zeroBasedNumbering = false;
 
     preferences.reset (new DynamicObject);
@@ -210,6 +211,16 @@ void ExtensionWindow::paint (Graphics& g)
     g.fillAll (Colour (0xff2a2a2a));
 }
 
+void ExtensionWindow::setWindowPositionAndSize(int x, int y, int w, int h) {
+    extension->extensionWindow->setTopLeftPosition (x, y);
+    extension->extensionWindow->setSize(w, h);
+    extension->resized();
+}
+
+Rectangle<int> ExtensionWindow::getWindowPositionAndSize() {
+    return extension->extensionWindow->getBounds();
+}
+
 void ExtensionWindow::resized()
 {
     int minWindowWidth = 180;
@@ -236,7 +247,7 @@ void ExtensionWindow::resized()
 
     if (!displayRightPanel) {
        x = getWidth();
-   }
+    }
     // Width of 15 provides a wider area to select the resizer on touchscreens. The displayed width is overridden in the Paint method of MyDraggableComponent.
     draggableResizer.setBounds (juce::jmax(minWindowWidth, x), 50, 15, getHeight()); 
     int buttonDisplayCount = 0;
@@ -332,7 +343,7 @@ void ExtensionWindow::resized()
 }
 
 void ExtensionWindow::refreshUI() {
-       // Reset all buttons
+    // Reset all buttons
     for (int i = 0; i < extension->buttons.size(); ++i) {
         extension->buttons[i]->setToggleState(false, dontSendNotification);
         extension->buttons[i]->setVisible(false);
@@ -346,15 +357,15 @@ void ExtensionWindow::refreshUI() {
             updateButtonLabel(SONG_TITLE);
             setTitleBarName(SONG_WINDOW_TITLE);
             updateButtonNames(lib->getSongNames());
-            selectButton(lib->getCurrentSongIndex());
             updateSubButtonNames(lib->getSongPartNames(lib->getCurrentSongIndex()));
+            selectButton(lib->getCurrentSongIndex());
             selectSubButton(lib->getCurrentSongpartIndex());
     } else {
             updateButtonLabel(RACKSPACE_TITLE);
             setTitleBarName(RACKSPACE_WINDOW_TITLE);
             updateButtonNames(lib->getRackspaceNames());
-            selectButton(lib->getCurrentRackspaceIndex());
             updateSubButtonNames(lib->getVariationNames(lib->getCurrentRackspaceIndex()));
+            selectButton(lib->getCurrentRackspaceIndex());
             selectSubButton(lib->getCurrentVariationIndex());
     }
     extension->resized();
@@ -378,7 +389,6 @@ void ExtensionWindow::toggleZeroBasedNumbering() {
     extension->preferences->setProperty("ZeroBasedNumbers", !status); 
     setZeroBasedNumbering(!status);
 }
-
 
 void ExtensionWindow::setImmediateSwitching(bool immediateSwitch) {
     extension->preferences->setProperty("ImmediateSwitching", immediateSwitch);     
@@ -427,22 +437,39 @@ int ExtensionWindow::getButtonSelected() {
     return selected;
 }
 
+int ExtensionWindow::getVisibleButtonCount() {
+    int visible = 0;
+    for (auto i = 0; i < extension->buttons.size(); ++i) {
+        if (extension->buttons[i]->isVisible()) {
+            ++visible;
+        }
+    }
+    return visible;
+}
+
+int ExtensionWindow::getVisibleSubButtonCount() {
+    int visible = 0;
+    for (auto i = 0; i < extension->subButtons.size(); ++i) {
+        if (extension->subButtons[i]->isVisible()) {
+            ++visible;
+        }
+    }
+    return visible;
+}
+
 void ExtensionWindow::selectButton(int index) {
     if (extension == nullptr) return;
     if (index < extension->buttons.size() && index >= 0) {
         extension->buttons[index]->setToggleState(true, dontSendNotification);
         Rectangle<int> viewportBounds = extension->viewport.getViewArea();
         Rectangle<int> buttonBounds = extension->buttons[index]->getBounds();
-
         auto pad = buttonBounds.getWidth() / 40;
         pad = pad + 0.5 - (pad < 0); 
         int padding = (int)pad;
-        int viewY = viewportBounds.getY() + viewportBounds.getHeight();
-        int btnY = buttonBounds.getY() + buttonBounds.getHeight();
-        if (btnY > viewY) {
-            extension->viewport.setViewPosition(0, viewportBounds.getY() + (buttonBounds.getY() + buttonBounds.getHeight() - viewY + padding));
-        } else if (buttonBounds.getY() < viewportBounds.getY()) {
-            extension->viewport.setViewPosition(0, buttonBounds.getY() - padding);
+        int viewY = viewportBounds.getY();
+        int btnY = buttonBounds.getY();
+        if (btnY < viewY) {
+            extension->viewport.setViewPosition(0, btnY - padding);
         }
         updatePrevCurrNext(index);
     }
@@ -490,9 +517,9 @@ bool ExtensionWindow::isSubButtonsCollapsed() {
 }
 
 void ExtensionWindow::selectSubButton(int index) {
-
     if (index < extension->subButtons.size() && index >= 0) {
         extension->subButtons[index]->setToggleState(true, dontSendNotification);
+        updateViewportPositionForSubButtons();
     }
 }
 
@@ -512,6 +539,21 @@ void ExtensionWindow::updateButtonNames(std::vector<std::string> buttonNames) {
     } 
     extension->resized();
  }
+
+void ExtensionWindow::compareButtonNames(std::vector<std::string> newButtonNames) {
+    int buttonCount = extension->buttons.size();
+    int newButtonCount = newButtonNames.size();
+    int visibleButtons = getVisibleButtonCount();
+    if (visibleButtons != newButtonCount) {
+        refreshUI();
+    } else {
+        for (auto i = 0; i < newButtonCount; ++i) {
+            if (i < buttonCount && newButtonNames[i] != extension->buttons[i]->getButtonText()) {
+                refreshUI();
+            }
+        }
+    }
+}
 
 void ExtensionWindow::updateSubButtonNames(std::vector<std::string> buttonNames) {
     if (extension == nullptr) return;
@@ -542,6 +584,23 @@ void ExtensionWindow::updateSubButtonNames(std::vector<std::string> buttonNames)
     }
     extension->resized();
  }
+
+ void ExtensionWindow::compareSubButtonNames(std::vector<std::string> newButtonNames) {
+    int buttonCount = extension->subButtons.size();
+    int visibleButtons = getVisibleSubButtonCount();
+    int newButtonCount = newButtonNames.size();
+    if (visibleButtons > 0) { // Ignore if collapsed
+        if (visibleButtons != newButtonCount) {
+            refreshUI();
+        } else {
+            for (auto i = 0; i < newButtonCount; ++i) {
+                if (i < buttonCount && newButtonNames[i] != extension->subButtons[i]->getButtonText()) {
+                    refreshUI();
+                }
+            }
+        }
+    }
+}
 
 std::vector<std::string> ExtensionWindow::getSubButtonNamesByIndex(int index) {
     std::vector<std::string> names;
@@ -579,6 +638,25 @@ void ExtensionWindow::updateButtonLabel(const String& text) {
     }
     extension->resized();
 }
+
+void ExtensionWindow::updateViewportPositionForSubButtons() {
+    Rectangle<int> viewportBounds = extension->viewport.getViewArea();
+    Rectangle<int> buttonBounds = extension->buttons[getButtonSelected()]->getBounds();
+    auto pad = buttonBounds.getWidth() / 40;
+    pad = pad + 0.5 - (pad < 0); 
+    int padding = (int)pad;
+    int viewY = viewportBounds.getY();
+    int viewH = viewportBounds.getHeight();
+    int btnH = buttonBounds.getHeight();
+    int btnY = padding + (getButtonSelected() * (btnH + padding));
+    int subButtonCount = getVisibleSubButtonCount();
+    int totalH = (btnH + padding) * (subButtonCount + 2);
+    if ((btnY + totalH) > (viewY + viewH)) {
+        int adjY = (viewH - totalH > 0) ? (viewH - totalH) : 0;
+        extension->viewport.setViewPosition(0, (btnY - adjY) > 0 ? (btnY - adjY) : 0);
+    } 
+}
+
 void ExtensionWindow::buttonClicked (Button* buttonThatWasClicked)
 {
    if (buttonThatWasClicked == sidePanelOpenButton.get() || buttonThatWasClicked == sidePanelCloseButton.get())
@@ -616,9 +694,14 @@ void ExtensionWindow::buttonClicked (Button* buttonThatWasClicked)
         pinUnpinnedButton->setVisible(!newPinnedStatus);
         pinPinnedButton->setVisible(newPinnedStatus);
         extension->extensionWindow->setAlwaysOnTop(newPinnedStatus);
+        if (newPinnedStatus) {
+            Rectangle<int> window = getWindowPositionAndSize();
+            lib->consoleLog("Pinned GP Selector (x,y,w,h): " + std::to_string(window.getX()) + ", " + std::to_string(window.getY()) + ", " + std::to_string(window.getWidth()) + ", " + std::to_string(window.getHeight()));
+        }
         resized();
     } else if (buttonThatWasClicked == refreshButton.get()) {
-        refreshUI();
+        setWindowPositionAndSize(0,0,400,800);
+        //refreshUI();
     } else if (buttonThatWasClicked->getProperties()["type"] == "button") {
         bool switchRackSongImmediately = preferences->getProperty("ImmediateSwitching");
         bool inSetlist = lib->inSetlistMode();
@@ -635,6 +718,7 @@ void ExtensionWindow::buttonClicked (Button* buttonThatWasClicked)
         if (isSubButtonsCollapsed() || (buttonIndex != prevButtonSelected)) {
             // Expand
             updateSubButtonNames(getSubButtonNamesByIndex(buttonIndex));
+            updateViewportPositionForSubButtons();
             if (buttonIndex != currentGPIndex && switchRackSongImmediately) {
                 selectSubButton(0); // Force selection of first variation/part to avoid sync issues
             }
@@ -668,7 +752,6 @@ void ExtensionWindow::buttonClicked (Button* buttonThatWasClicked)
         } else {
             bool success = lib->switchToRackspace(buttonIndex, subButtonIndex);
         }
-        
         // Ensure other buttons are toggled off
         for (size_t i = 0; i < subButtons.size(); ++i) {
             if (i != subButtonIndex && subButtons[i]->getToggleState()) {
@@ -730,6 +813,8 @@ void ExtensionWindow::processPreferencesDefaults(StringPairArray prefs) {
     extension->preferences->setProperty("ImmediateSwitching", prefs.getValue("ImmediateSwitching", "") == "false" ? false : true);
     setLargeScrollArea(prefs.getValue("LargeScrollArea", "") == "true" ? true : false);
     removeColorKeywordFromName(prefs.getValue("RemoveColorKeywordFromName", "") == "true" ? true : false); 
+    StringArray positionSize = StringArray::fromTokens(prefs.getValue("PositionAndSize", "100,100,300,600"), ",", "");
+    setWindowPositionAndSize(positionSize[0].getIntValue(), positionSize[1].getIntValue(), positionSize[2].getIntValue(), positionSize[3].getIntValue());
 }
 
 void ExtensionWindow::processPreferencesColors(StringPairArray prefs) {
@@ -748,8 +833,13 @@ void MyDocumentWindow::closeButtonPressed () {
     ExtensionWindow::displayWindow(false);
 }
 
-void MyTimer::timerCallback() {
+void ClockTimer::timerCallback() {
     ExtensionWindow::updateClock(Time::getCurrentTime().toString(false, true, false, true));
+}
+
+void RefreshTimer::timerCallback() {
+    ExtensionWindow::compareButtonNames(lib->inSetlistMode() ? lib->getSongNames() : lib->getRackspaceNames());
+    ExtensionWindow::compareSubButtonNames(lib->inSetlistMode() ? lib->getSongPartNames(ExtensionWindow::getButtonSelected()) : lib->getVariationNames(ExtensionWindow::getButtonSelected()));
 }
 
 #if 0

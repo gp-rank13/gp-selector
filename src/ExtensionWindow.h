@@ -72,10 +72,14 @@ public:
   void closeWindow();
   void static updateButtonLabel(const String& label);
   void static updateButtonNames(std::vector<std::string> buttonNames);
+  void static compareButtonNames(std::vector<std::string> buttonNames);
   void static updateSubButtonNames(std::vector<std::string> buttonNames);
+  void static compareSubButtonNames(std::vector<std::string> buttonNames);
   std::vector<std::string> getSubButtonNamesByIndex(int index);
   bool static isButtonSelected(int index);
   int static getButtonSelected();
+  int static getVisibleButtonCount();
+  int static getVisibleSubButtonCount();
   void static selectButton(int index);
   void static updatePrevCurrNext(int index);
   bool static isSubButtonSelected(int index);
@@ -86,6 +90,7 @@ public:
   void static setZeroBasedNumbering(bool zeroBased);
   void static setImmediateSwitching(bool immediateSwitch);
   void static setLargeScrollArea(bool largeScrollArea);
+  void static updateViewportPositionForSubButtons();
   void static toggleZeroBasedNumbering();
   void static toggleImmediateSwitching();
   void static toggleLargeScrollArea();  
@@ -98,6 +103,8 @@ public:
   void static removeColorKeywordFromName(bool remove);
   void static refreshUI();
   void static updateButtonLnF(std::string LnFname);
+  void static setWindowPositionAndSize(int x, int y, int w, int h);
+  Rectangle<int> getWindowPositionAndSize();
   void mouseDrag (const MouseEvent& e) override
     {
         resized();
@@ -126,7 +133,8 @@ public:
   OwnedArray<TextButton> buttons;
   OwnedArray<TextButton> subButtons;
   StringPairArray buttonColors;
-  MyTimer clockTimer;
+  ClockTimer clockTimer;
+  RefreshTimer refreshTimer;
   bool displayRightPanel = false;
   bool displayWindowOnLoad = false;
   std::unique_ptr<int> switchImmediately;

@@ -137,9 +137,11 @@ void LibMain::OnRackspaceActivated() {
   
             if (!ExtensionWindow::isButtonSelected(index)) { // If selected in GP directly, ensure buttons are in sync
                 ExtensionWindow::selectButton(index);
+                ExtensionWindow::updateSubButtonNames(getVariationNames(index));
                 ExtensionWindow::selectSubButton(getCurrentVariationIndex());
+            } else {
+                ExtensionWindow::updateSubButtonNames(getVariationNames(index));
             }
-            ExtensionWindow::updateSubButtonNames(getVariationNames(index));
         }
     }
 }
@@ -162,12 +164,13 @@ void LibMain::OnSongChanged(int oldIndex, int newIndex) {
     if (newIndex >= MAX_RACKSPACES_SONGS) return;
     if (newIndex >= 0 && inSetlistMode()) {
         ExtensionWindow::updateButtonNames(getSongNames());
-
         if (!ExtensionWindow::isButtonSelected(newIndex)) { // If selected in GP directly, ensure buttons are in sync
             ExtensionWindow::selectButton(newIndex);
+            ExtensionWindow::updateSubButtonNames(getSongPartNames(newIndex));
             ExtensionWindow::selectSubButton(getCurrentSongpartIndex());
+        } else {
+            ExtensionWindow::updateSubButtonNames(getSongPartNames(newIndex));
         }
-        ExtensionWindow::updateSubButtonNames(getSongPartNames(newIndex));
     }
 }
 
@@ -179,6 +182,7 @@ void LibMain::OnSongPartChanged(int oldIndex, int newIndex) {
         if (!ExtensionWindow::isSubButtonSelected(newIndex)) {
             ExtensionWindow::selectSubButton(newIndex);
             ExtensionWindow::updateSubButtonNames(getSongPartNames(songIndex));
+
         }
     }
 }
