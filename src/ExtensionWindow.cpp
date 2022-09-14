@@ -700,8 +700,7 @@ void ExtensionWindow::buttonClicked (Button* buttonThatWasClicked)
         }
         resized();
     } else if (buttonThatWasClicked == refreshButton.get()) {
-        setWindowPositionAndSize(0,0,400,800);
-        //refreshUI();
+        refreshUI();
     } else if (buttonThatWasClicked->getProperties()["type"] == "button") {
         bool switchRackSongImmediately = preferences->getProperty("ImmediateSwitching");
         bool inSetlist = lib->inSetlistMode();
