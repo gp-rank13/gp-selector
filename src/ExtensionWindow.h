@@ -71,8 +71,10 @@ public:
   void buttonClicked (Button* buttonThatWasClicked) override;
   void closeWindow();
   void static updateButtonLabel(const String& label);
+  void static addButtons(int count);
   void static updateButtonNames(std::vector<std::string> buttonNames);
   void static compareButtonNames(std::vector<std::string> buttonNames);
+  void static addSubButtons(int count);
   void static updateSubButtonNames(std::vector<std::string> buttonNames);
   void static compareSubButtonNames(std::vector<std::string> buttonNames);
   std::vector<std::string> getSubButtonNamesByIndex(int index);

@@ -119,7 +119,7 @@ ExtensionWindow::ExtensionWindow ()
     btnModeSwitch->addListener (this);  
     addAndMakeVisible (btnModeSwitch.get());
 
-    for (int i = 0; i < MAX_RACKSPACES_SONGS; ++i) {
+    for (int i = 0; i < DEFAULT_RACKSPACES_SONGS; ++i) {
         std::string number = std::to_string(i);
         std::string name = std::string(2 - number.length(), '0') + std::to_string(i); // Pad with leading zero
         auto button = new TextButton(name); 
@@ -134,7 +134,7 @@ ExtensionWindow::ExtensionWindow ()
     }
     buttons[0]->setToggleState (true, dontSendNotification);
 
-    for (int i = 0; i < MAX_VARIATIONS_SONGPARTS; ++i) {
+    for (int i = 0; i < DEFAULT_VARIATIONS_SONGPARTS; ++i) {
         std::string number = std::to_string(i);
         auto button = new TextButton(number); 
         subButtons.add(button);
@@ -377,7 +377,7 @@ void ExtensionWindow::setTitleBarName(const String& name) {
 
 void ExtensionWindow::setZeroBasedNumbering(bool zeroBased) {
     extension->preferences->setProperty("ZeroBasedNumbers", zeroBased); 
-    int offset = (zeroBased == true) ? 0 : 1;
+    int offset = zeroBased ? 0 : 1;
     for (int i = 0; i < extension->buttons.size(); ++i) {
         extension->buttons[i]->getProperties().set("displayIndex", i + offset);
     }
@@ -458,7 +458,6 @@ int ExtensionWindow::getVisibleSubButtonCount() {
 }
 
 void ExtensionWindow::selectButton(int index) {
-    if (extension == nullptr) return;
     if (index < extension->buttons.size() && index >= 0) {
         extension->buttons[index]->setToggleState(true, dontSendNotification);
         Rectangle<int> viewportBounds = extension->viewport.getViewArea();
@@ -523,12 +522,36 @@ void ExtensionWindow::selectSubButton(int index) {
     }
 }
 
-void ExtensionWindow::updateButtonNames(std::vector<std::string> buttonNames) {
-    if (extension == nullptr) return;
-    int buttonCount = buttonNames.size();
+void ExtensionWindow::addButtons(int count) {
+    int buttonCount = extension->buttons.size();
+    int index;
+    int offset = extension->preferences->getProperty("ZeroBasedNumbers") ? 0 : 1;
+    for (auto i = 0; i < count; ++i) {
+        index = buttonCount + i;
+        std::string number = std::to_string(index);
+        auto button = new TextButton(number); 
+        extension->buttons.add(button);
+        extension->buttons[index]->setLookAndFeel(extension->buttonsLnF);
+        extension->buttons[index]->setClickingTogglesState(true);
+        extension->buttons[index]->setRadioGroupId(1);
+        extension->buttons[index]->getProperties().set("index", index);
+        extension->buttons[index]->getProperties().set("displayIndex", index + offset);
+        extension->buttons[index]->getProperties().set("type", "button"); 
+        extension->buttons[index]->setTriggeredOnMouseDown(true);
+        extension->buttons[index]->addListener(extension);  
+        extension->container.addAndMakeVisible(extension->buttons[index]);
+    }
+}
 
-    for (size_t i = 0; i < extension->buttons.size(); ++i) {
-        if (i < buttonCount) {
+void ExtensionWindow::updateButtonNames(std::vector<std::string> buttonNames) {
+    int newButtonCount = buttonNames.size();
+    int currentButtonCount = extension->buttons.size();
+    if (newButtonCount > currentButtonCount) {
+        addButtons(newButtonCount-currentButtonCount);
+        currentButtonCount = newButtonCount;
+    }
+    for (auto i = 0; i < currentButtonCount; ++i) {
+        if (i < newButtonCount) {
             extension->buttons[i]->setButtonText(buttonNames[i]);
             extension->buttons[i]->setVisible(true);
             extension->buttons[i]->getProperties().set("colour", "0xff3f3f3f");
@@ -555,16 +578,42 @@ void ExtensionWindow::compareButtonNames(std::vector<std::string> newButtonNames
     }
 }
 
+void ExtensionWindow::addSubButtons(int count) {
+    int buttonCount = extension->subButtons.size();
+    int index;
+    int offset = extension->preferences->getProperty("ZeroBasedNumbers") ? 0 : 1;
+    for (auto i = 0; i < count; ++i) {
+        index = buttonCount + i;
+        std::string number = std::to_string(index);
+        auto button = new TextButton(number); 
+        extension->subButtons.add(button);
+        extension->subButtons[index]->setLookAndFeel(extension->subButtonsLnF);
+        extension->subButtons[index]->setClickingTogglesState(true);
+        extension->subButtons[index]->setRadioGroupId(2);
+        extension->subButtons[index]->getProperties().set("index", index);
+        extension->subButtons[index]->getProperties().set("displayIndex", index + offset);
+        extension->subButtons[index]->getProperties().set("type", "subButton"); 
+        extension->subButtons[index]->setTriggeredOnMouseDown(true);
+        extension->subButtons[index]->addListener(extension);  
+        extension->container.addAndMakeVisible(extension->subButtons[index]);
+    }
+}
+
 void ExtensionWindow::updateSubButtonNames(std::vector<std::string> buttonNames) {
-    if (extension == nullptr) return;
-    int buttonCount = buttonNames.size();
-    for (auto i = 0; i < extension->subButtons.size(); ++i) {
-        if (i < buttonCount) {
-            extension->subButtons[i]->setButtonText(buttonNames[i]);
+    int newButtonCount = buttonNames.size();
+    int currentButtonCount = extension->subButtons.size();
+    if (newButtonCount > currentButtonCount) {
+        addSubButtons(newButtonCount-currentButtonCount);
+        currentButtonCount = newButtonCount;
+    }
+    for (auto i = 0; i < currentButtonCount; ++i) {
+        if (i < newButtonCount) {
+            String name = buttonNames[i];
+            String color = "ff353535";
+            extension->subButtons[i]->setButtonText(name);
+            extension->subButtons[i]->getProperties().set("name", name);
             extension->subButtons[i]->setVisible(true);
             StringArray keys = extension->buttonColors.getAllKeys();
-            String color = "ff353535";
-            String name = buttonNames[i];
             for (int j = 0; j < keys.size(); ++j ) {
                 if (name.contains(keys[j])) {
                     color = extension->buttonColors.getValue(keys[j],"");
@@ -580,6 +629,7 @@ void ExtensionWindow::updateSubButtonNames(std::vector<std::string> buttonNames)
             extension->subButtons[i]->setButtonText("");
             extension->subButtons[i]->setVisible(false);
             extension->subButtons[i]->getProperties().set("colour", "FF353535");
+            extension->subButtons[i]->getProperties().set("name", "");
         }
     }
     extension->resized();
@@ -594,7 +644,7 @@ void ExtensionWindow::updateSubButtonNames(std::vector<std::string> buttonNames)
             refreshUI();
         } else {
             for (auto i = 0; i < newButtonCount; ++i) {
-                if (i < buttonCount && newButtonNames[i] != extension->subButtons[i]->getButtonText()) {
+                if (i < buttonCount && newButtonNames[i] != extension->subButtons[i]->getProperties()["name"]) {
                     refreshUI();
                 }
             }
@@ -613,7 +663,6 @@ std::vector<std::string> ExtensionWindow::getSubButtonNamesByIndex(int index) {
 } 
 
 void ExtensionWindow::updateButtonLnF(std::string LnFname) {
-    if (extension == nullptr) return;
     auto& lnf = extension->buttons[0]->getLookAndFeel();
     std::string lnfName = typeid(lnf).name();
 
@@ -630,7 +679,6 @@ void ExtensionWindow::updateButtonLnF(std::string LnFname) {
  }
 
 void ExtensionWindow::updateButtonLabel(const String& text) {
-    if (extension == nullptr) return;
     if (text == "Songs"){ 
         extension->header->setLookAndFeel(extension->headerSongsLnF);
     } else {
@@ -664,7 +712,6 @@ void ExtensionWindow::buttonClicked (Button* buttonThatWasClicked)
         displayRightPanel = !displayRightPanel;
         if (displayRightPanel) {
             auto bounds = draggableResizer.getBounds();
-            //draggableResizer.setBounds(bounds.getX() - 20, bounds.getY(), bounds.getWidth(), bounds.getHeight());
             setSize(container.getWidth() + 500, getHeight());
             sidePanelCloseButton->setVisible(true);
             sidePanelOpenButton->setVisible(false);
@@ -696,7 +743,7 @@ void ExtensionWindow::buttonClicked (Button* buttonThatWasClicked)
         extension->extensionWindow->setAlwaysOnTop(newPinnedStatus);
         if (newPinnedStatus) {
             Rectangle<int> window = getWindowPositionAndSize();
-            lib->consoleLog("Pinned GP Selector (x,y,w,h): " + std::to_string(window.getX()) + ", " + std::to_string(window.getY()) + ", " + std::to_string(window.getWidth()) + ", " + std::to_string(window.getHeight()));
+            lib->consoleLog("Pinned GP Selector (x,y,w,h): " + std::to_string(window.getX()) + "," + std::to_string(window.getY()) + "," + std::to_string(window.getWidth()) + "," + std::to_string(window.getHeight()));
         }
         resized();
     } else if (buttonThatWasClicked == refreshButton.get()) {

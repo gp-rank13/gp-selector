@@ -29,8 +29,8 @@ const std::vector<std::string> menuNames = { "Show Selector", "Hide Selector", "
 // Preferences file
 const std::string PREF_FILENAME = "GPSelectorPrefs.txt";
 
-// Maximum number of rackspaces/songs, variations/song parts that are supported by the extension
-const int MAX_RACKSPACES_SONGS = 100;
-const int MAX_VARIATIONS_SONGPARTS = 20;
+// Default number of rackspaces/song and variations/song part buttons that are created by the extension
+const int DEFAULT_RACKSPACES_SONGS = 50;
+const int DEFAULT_VARIATIONS_SONGPARTS = 10;
 
 #endif

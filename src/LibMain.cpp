@@ -131,10 +131,8 @@ void LibMain::OnRackspaceActivated() {
     if (isGigFileLoading) return;
     if (!inSetlistMode()) {
         int index = getCurrentRackspaceIndex();
-        if (index >= MAX_RACKSPACES_SONGS) return;
         if (index >= 0) {
             ExtensionWindow::updateButtonNames(getRackspaceNames());
-  
             if (!ExtensionWindow::isButtonSelected(index)) { // If selected in GP directly, ensure buttons are in sync
                 ExtensionWindow::selectButton(index);
                 ExtensionWindow::updateSubButtonNames(getVariationNames(index));
@@ -148,7 +146,6 @@ void LibMain::OnRackspaceActivated() {
 
 void LibMain::OnVariationChanged(int oldIndex, int newIndex) {
     if (isGigFileLoading) return;
-    if (newIndex >= MAX_VARIATIONS_SONGPARTS) return;
     if (newIndex >= 0 && oldIndex != newIndex && !inSetlistMode()) {
         int rackspaceIndex = getCurrentRackspaceIndex();
         if (!ExtensionWindow::isSubButtonSelected(newIndex)) {
@@ -161,7 +158,6 @@ void LibMain::OnVariationChanged(int oldIndex, int newIndex) {
 
 void LibMain::OnSongChanged(int oldIndex, int newIndex) {
     if (isGigFileLoading) return;
-    if (newIndex >= MAX_RACKSPACES_SONGS) return;
     if (newIndex >= 0 && inSetlistMode()) {
         ExtensionWindow::updateButtonNames(getSongNames());
         if (!ExtensionWindow::isButtonSelected(newIndex)) { // If selected in GP directly, ensure buttons are in sync
@@ -176,13 +172,11 @@ void LibMain::OnSongChanged(int oldIndex, int newIndex) {
 
 void LibMain::OnSongPartChanged(int oldIndex, int newIndex) {
     if (isGigFileLoading) return;
-    if (newIndex >= MAX_VARIATIONS_SONGPARTS) return;
     if (newIndex >= 0 && oldIndex != newIndex && inSetlistMode()) {
         int songIndex = getCurrentSongIndex();
         if (!ExtensionWindow::isSubButtonSelected(newIndex)) {
-            ExtensionWindow::selectSubButton(newIndex);
             ExtensionWindow::updateSubButtonNames(getSongPartNames(songIndex));
-
+            ExtensionWindow::selectSubButton(newIndex);
         }
     }
 }
