@@ -33,4 +33,6 @@ const std::string PREF_FILENAME = "GPSelectorPrefs.txt";
 const int DEFAULT_RACKSPACES_SONGS = 50;
 const int DEFAULT_VARIATIONS_SONGPARTS = 10;
 
+// GUI defaults
+
 #endif

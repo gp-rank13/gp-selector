@@ -1,6 +1,9 @@
 // Rackspace and song selector extension for Gig Performer by @rank13
 
 #pragma once
+
+#include "Constants.h"
+
 using namespace juce;
 
 class buttonLookAndFeel : public LookAndFeel_V4 {
@@ -13,32 +16,30 @@ public:
 		g.setColour (button.findColour (button.getToggleState () ? TextButton::textColourOnId
 			: TextButton::textColourOffId)
       .withMultipliedAlpha (0.5f));
-    
-		const int yIndent = button.proportionOfHeight (0.1f) * 2;
+    const int buttonWidth = button.getWidth();
+    const int padding = (int)(buttonWidth/10);
+		const int yIndent = button.proportionOfHeight (0.1f);
 		const int cornerSize = jmin (button.getHeight (), button.getWidth ()) / 2;
-		const int leftIndent = cornerSize / (button.isConnectedOnLeft () ?
-                  yIndent * 2 : yIndent);
-		const int rightIndent = cornerSize / (button.isConnectedOnRight () ? 
-                  yIndent * 2 : yIndent);
-		const int textWidth = button.getWidth () - leftIndent - rightIndent;
+    const int leftIndent = buttonWidth > (160) ? yIndent * 2 : 5;
+		const int textWidth = button.getWidth () - leftIndent;
     const int rows = 1;
-		if (textWidth > 100) {
-      // Button number
-      Font font1 (juce::jmax(button.getHeight () * 0.4f, 16.f));
-		  g.setFont (font1);
-      int numberWidth = (int) font1.getStringWidthFloat(button.getName());  // Base width on 2 digits
-      auto buttonNumber = button.getProperties()["displayIndex"];
-      g.drawFittedText (buttonNumber,
-      leftIndent*4, yIndent, numberWidth, button.getHeight () - yIndent * 2,
+		
+    // Button number
+    Font font1 (juce::jmax(button.getHeight () * 0.4f, 16.f));
+    g.setFont (font1);
+    auto buttonNumber = button.getProperties()["displayIndex"];
+    int numberWidth = (int) font1.getStringWidthFloat(button.getName()); 
+    g.drawFittedText (buttonNumber,
+      leftIndent, yIndent, numberWidth, button.getHeight () - yIndent * 2,
       Justification::right, rows, 0.5f);
-      // Button Name
-      Font font2 (juce::jmax(button.getHeight () * 0.4f, 16.f));
-		  g.setFont (font2);
-      g.setColour  (button.getToggleState () ? Colours::white : Colour(0xffc5c5c5));
-			g.drawFittedText (button.getButtonText (),
-				(leftIndent*4) + (numberWidth*1.5), yIndent, textWidth-(leftIndent*20), button.getHeight () - yIndent * 2,
-				Justification::left, rows, 1.0f);
-    }
+
+    // Button Name
+    Font font2 (juce::jmax(button.getHeight () * 0.4f, 16.f));
+    g.setFont (font2);
+    g.setColour  (button.getToggleState () ? Colours::white : Colour(0xffc5c5c5));
+    g.drawFittedText (button.getButtonText (),
+      leftIndent + (numberWidth*1.5), yIndent, textWidth - (numberWidth*1.5), button.getHeight () - yIndent * 2,
+      Justification::left, rows, 1.0f);
 	}
 
   void drawButtonBackground (juce::Graphics& g, juce::Button& button, const juce::Colour& backgroundColour,
@@ -77,29 +78,23 @@ public:
 		g.setColour (button.findColour (button.getToggleState () ? TextButton::textColourOnId
 			: TextButton::textColourOffId)
       .withMultipliedAlpha (0.5f));
-    
-		const int yIndent = button.proportionOfHeight (0.1f) * 2;
-		const int cornerSize = jmin (button.getHeight (), button.getWidth ()) / 2;
-		const int leftIndent = cornerSize / (button.isConnectedOnLeft () ?
-                  yIndent * 2 : yIndent);
-		const int rightIndent = cornerSize / (button.isConnectedOnRight () ? 
-                  yIndent * 2 : yIndent);
-		const int textWidth = button.getWidth () - leftIndent - rightIndent;
-    const int rows = 1;
-		if (textWidth > 100) {
-      // Button number
-      Font font1 (juce::jmax(button.getHeight () * 0.4f, 16.f));
-		  g.setFont (font1);
-      int numberWidth = (int) font1.getStringWidthFloat("00");  // Base width on 2 digits
-      auto buttonNumber = button.getProperties()["displayIndex"];
-      // Button Name
-      Font font2 (juce::jmax(button.getHeight () * 0.4f, 16.f));
-		  g.setFont (font2);
-      g.setColour (Colour(0xffe5e5e5));
-			g.drawFittedText (button.getButtonText (),
-				leftIndent + numberWidth, yIndent, textWidth-(leftIndent*20), button.getHeight () - yIndent * 2,
-				Justification::left, rows, 1.0f);
-    }
+    const int buttonWidth = button.getWidth();
+    const int buttonHeight = button.getHeight();
+    const String buttonText = button.getButtonText();
+		const int yIndent = button.proportionOfHeight (0.1f);// * 2;
+		const int cornerSize = jmin (buttonHeight, buttonWidth) / 2;
+		const int leftIndent = buttonWidth > 150 ? yIndent * 4 : 5;
+		
+    // Button Name
+    Font font2 (juce::jmax(buttonHeight * 0.4f, 16.f));
+    g.setFont (font2);
+    g.setColour (Colour(0xffe5e5e5));
+    int availableWidth = buttonWidth - leftIndent;
+    int textWidth = (int) font.getStringWidthFloat(buttonText);
+    int textBuffer = availableWidth - textWidth;
+    g.drawFittedText (buttonText,
+      leftIndent, yIndent, availableWidth, buttonHeight - yIndent * 2,
+      Justification::left, 1, 1.0f);
 	}
 
   void drawButtonBackground (juce::Graphics& g, juce::Button& button, const juce::Colour& backgroundColour,

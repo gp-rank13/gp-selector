@@ -224,6 +224,7 @@ Rectangle<int> ExtensionWindow::getWindowPositionAndSize() {
 void ExtensionWindow::resized()
 {
     int minWindowWidth = 180;
+    int minButtonHeight = 50;
     int largeScrollAreaWidth = 50;
     Point<int> viewPos = viewport.getViewPosition();
     int columns = 1;
@@ -239,9 +240,12 @@ void ExtensionWindow::resized()
     //auto buttonSize = (bounds.getWidth()) / columns;
     bool largeScrollArea = preferences->getProperty("LargeScrollArea");
     auto buttonSize = (largeScrollArea) ? bounds.getWidth() - largeScrollAreaWidth : bounds.getWidth();
+
     auto pad = buttonSize / 40;
     pad = pad + 0.5 - (pad < 0); 
     int padding = (int)pad;
+    int buttonHeight = ((int)(buttonSize/buttonHeightRatio) < minButtonHeight) ? minButtonHeight : (int)(buttonSize / buttonHeightRatio);
+
     int rowHeight = 1;
     auto x = draggableResizer.getX();
 
@@ -302,25 +306,24 @@ void ExtensionWindow::resized()
     }
    
     int scrollbarBuffer = 2;
-    int subButtonHeight = (buttonSize/buttonHeightRatio/columns) * subButtonDisplayCount;
     int selectedButton = 999;
     for (size_t i = 0; i < buttons.size(); ++i) {
          buttons[i]->setBounds (buttonSize * (i % columns) + padding,
-                                       buttonSize/buttonHeightRatio * (i / columns) + padding + (i > selectedButton ? subButtonHeight : 0),
+                                       buttonHeight * (i / columns) + padding + (i > selectedButton ? buttonHeight * subButtonDisplayCount : 0),
                                        buttonSize - padding - scrollbarBuffer,
-                                       buttonSize/buttonHeightRatio - padding);
+                                       buttonHeight - padding);
         if (buttons[i]->getToggleState()) {  // Display sub buttons
             selectedButton = i;
             for (size_t j = 0; j < subButtonDisplayCount; ++j) {
                 subButtons[j]->setBounds (buttonSize * (j % columns) + (padding*4),
-                                       buttonSize/buttonHeightRatio * ((j+1) / columns) + (buttonSize/buttonHeightRatio * (i / columns) + padding),
+                                       buttonHeight * ((j+1) / columns) + (buttonHeight * (i / columns) + padding),
                                        buttonSize - (padding*4) - scrollbarBuffer,
-                                       buttonSize/buttonHeightRatio - padding);
+                                       buttonHeight - padding);
             }
             highlight->setBounds (padding*2, 
-                                    buttonSize/buttonHeightRatio/columns + (buttonSize/buttonHeightRatio * (i / columns) + padding),
+                                    buttonHeight + (buttonHeight * (i / columns) + padding),
                                     padding/2,
-                                    subButtonHeight - padding
+                                    buttonHeight * subButtonDisplayCount - padding
             );
         }
     }
@@ -339,7 +342,6 @@ void ExtensionWindow::resized()
 
     draggableResizer.setVisible(displayRightPanel);
     containerRight.setVisible(displayRightPanel);
-
 }
 
 void ExtensionWindow::refreshUI() {
