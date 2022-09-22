@@ -21,7 +21,7 @@ ExtensionWindow::ExtensionWindow ()
     preferences->setProperty("LargeScrollArea", false);
     preferences->setProperty("ZeroBasedNumbers", false);
     preferences->setProperty("RemoveColorKeywordFromName", false);
-
+    preferences->setProperty("ThickBorders", false);
 
     header.reset (new Label ("header", ""));
     addAndMakeVisible (header.get());
@@ -174,7 +174,9 @@ ExtensionWindow::ExtensionWindow ()
     addAndMakeVisible(viewport);
     addAndMakeVisible(viewportRight);
     addAndMakeVisible(draggableResizer);
-    setSize (300, 600);
+    setSize (Rectangle<int>::fromString(DEFAULT_WINDOW_POSITION).getWidth(), 
+             Rectangle<int>::fromString(DEFAULT_WINDOW_POSITION).getHeight()
+            );
 
     extensionWindow.reset(new MyDocumentWindow());
     extensionWindow->setContentNonOwned(this, true);
@@ -409,7 +411,12 @@ void ExtensionWindow::setLargeScrollArea(bool largeScrollArea) {
 void ExtensionWindow::toggleLargeScrollArea() {
     bool status = extension->preferences->getProperty("LargeScrollArea");
     extension->preferences->setProperty("LargeScrollArea", !status); 
-    extension->resized();    
+    extension->resized();   }
+
+void ExtensionWindow::toggleThickBorders() {
+    bool status = extension->preferences->getProperty("ThickBorders");
+    extension->preferences->setProperty("ThickBorders", !status); 
+    refreshUI();
 }
 
 String ExtensionWindow::buttonName(int index) {
@@ -548,6 +555,7 @@ void ExtensionWindow::addButtons(int count) {
 void ExtensionWindow::updateButtonNames(std::vector<std::string> buttonNames) {
     int newButtonCount = buttonNames.size();
     int currentButtonCount = extension->buttons.size();
+    bool border = extension->preferences->getProperty("ThickBorders");
     if (newButtonCount > currentButtonCount) {
         addButtons(newButtonCount-currentButtonCount);
         currentButtonCount = newButtonCount;
@@ -557,6 +565,7 @@ void ExtensionWindow::updateButtonNames(std::vector<std::string> buttonNames) {
             extension->buttons[i]->setButtonText(buttonNames[i]);
             extension->buttons[i]->setVisible(true);
             extension->buttons[i]->getProperties().set("colour", "0xff3f3f3f");
+            extension->buttons[i]->getProperties().set("thickBorder", border);
         } else {
             extension->buttons[i]->setButtonText("");
             extension->buttons[i]->setVisible(false);
@@ -604,6 +613,7 @@ void ExtensionWindow::addSubButtons(int count) {
 void ExtensionWindow::updateSubButtonNames(std::vector<std::string> buttonNames) {
     int newButtonCount = buttonNames.size();
     int currentButtonCount = extension->subButtons.size();
+    bool border = extension->preferences->getProperty("ThickBorders");
     if (newButtonCount > currentButtonCount) {
         addSubButtons(newButtonCount-currentButtonCount);
         currentButtonCount = newButtonCount;
@@ -627,6 +637,7 @@ void ExtensionWindow::updateSubButtonNames(std::vector<std::string> buttonNames)
                 }
             }
             extension->subButtons[i]->getProperties().set("colour", color);
+            extension->subButtons[i]->getProperties().set("thickBorder", border);
         } else {
             extension->subButtons[i]->setButtonText("");
             extension->subButtons[i]->setVisible(false);
@@ -840,7 +851,10 @@ void ExtensionWindow::initialize() {
     MessageManager::getInstance()->callAsync([]() {
         if (extension == nullptr) {
             extension = new ExtensionWindow();
-            extension->extensionWindow->setTopLeftPosition(100, 100);
+            extension->extensionWindow->setTopLeftPosition(
+                                            Rectangle<int>::fromString(DEFAULT_WINDOW_POSITION).getX(), 
+                                            Rectangle<int>::fromString(DEFAULT_WINDOW_POSITION).getY()
+                                        );
         }
         jassert(extension != nullptr);
         extension->extensionWindow->setVisible(false);
@@ -863,6 +877,7 @@ void ExtensionWindow::processPreferencesDefaults(StringPairArray prefs) {
     removeColorKeywordFromName(prefs.getValue("RemoveColorKeywordFromName", "") == "true" ? true : false); 
     StringArray positionSize = StringArray::fromTokens(prefs.getValue("PositionAndSize", "100,100,300,600"), ",", "");
     setWindowPositionAndSize(positionSize[0].getIntValue(), positionSize[1].getIntValue(), positionSize[2].getIntValue(), positionSize[3].getIntValue());
+    extension->preferences->setProperty("ThickBorders", prefs.getValue("ThickBorders", "") == "true" ? true : false);
 }
 
 void ExtensionWindow::processPreferencesColors(StringPairArray prefs) {

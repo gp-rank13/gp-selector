@@ -96,6 +96,7 @@ public:
   void static toggleZeroBasedNumbering();
   void static toggleImmediateSwitching();
   void static toggleLargeScrollArea();  
+  void static toggleThickBorders();  
   String buttonName(int index);
   void static displayWindow(bool display);
   void static scrollWindow(double value);

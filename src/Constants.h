@@ -24,7 +24,7 @@ const std::string WIDGET_SELECTOR = "GP_SELECTOR";
 const std::string WIDGET_SCROLL = "GP_SELECTOR_SCROLL";
 
 // List of menu items
-const std::vector<std::string> menuNames = { "Show Selector", "Hide Selector", "Toggle Zero-Based Numbers", "Toggle Immediate Switching", "Toggle Large Scroll Area"};
+const std::vector<std::string> menuNames = { "Show Selector", "Hide Selector", "Toggle Zero-Based Numbers", "Toggle Immediate Switching", "Toggle Large Scroll Area", "Toggle Thick Borders"};
 
 // Preferences file
 const std::string PREF_FILENAME = "GPSelectorPrefs.txt";
@@ -34,5 +34,6 @@ const int DEFAULT_RACKSPACES_SONGS = 50;
 const int DEFAULT_VARIATIONS_SONGPARTS = 10;
 
 // GUI defaults
+const std::string DEFAULT_WINDOW_POSITION = "100,100,300,600";
 
 #endif

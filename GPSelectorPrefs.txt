@@ -2,6 +2,7 @@
 ZeroBasedNumbers = false
 ImmediateSwitching = true
 LargeScrollArea = false
+ThickBorders = false
 RemoveColorKeywordFromName = false
 PositionAndSize = 100,100,300,600
 

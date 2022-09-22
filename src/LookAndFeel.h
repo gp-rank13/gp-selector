@@ -19,7 +19,6 @@ public:
     const int buttonWidth = button.getWidth();
     const int padding = (int)(buttonWidth/10);
 		const int yIndent = button.proportionOfHeight (0.1f);
-		const int cornerSize = jmin (button.getHeight (), button.getWidth ()) / 2;
     const int leftIndent = buttonWidth > (160) ? yIndent * 2 : 5;
 		const int textWidth = button.getWidth () - leftIndent;
     const int rows = 1;
@@ -44,15 +43,14 @@ public:
 
   void drawButtonBackground (juce::Graphics& g, juce::Button& button, const juce::Colour& backgroundColour,
                               bool isButtonHighlighted, bool isButtonDown) {
-    auto buttonArea = button.getLocalBounds().toFloat().reduced (0.5f);
-    float cornerSize = 5.f;
+    auto buttonArea = button.getLocalBounds().toFloat();
+    float borderSize = buttonArea.getHeight() * ((button.getProperties()["thickBorder"]) ? 0.08 : 0.04);
     Colour myColour = Colour(0xff1f1f1f);
     String btnColour = button.getProperties()["colour"];
     myColour = Colour::fromString(btnColour);
 
     if (button.getToggleState()) {
       g.setColour (Colour(0xff6a6a6a));
-      
     } else if (isButtonHighlighted && !isButtonDown) {
       g.setColour (Colour(0xff2f2f2f));
     } else if (isButtonDown) {
@@ -60,10 +58,11 @@ public:
     } else {
       g.setColour (myColour);
     }   
-    g.fillRoundedRectangle (buttonArea, cornerSize);
+    g.fillRoundedRectangle (buttonArea, borderSize * 1.5);
     if (button.getToggleState()) {
       g.setColour (Colours::white);
-      g.drawRoundedRectangle (buttonArea, cornerSize, 2.f);  
+      buttonArea = buttonArea.withSizeKeepingCentre(buttonArea.getWidth() - borderSize, buttonArea.getHeight() - borderSize);      
+      g.drawRoundedRectangle (buttonArea, borderSize, borderSize);  
     }               
   }
 };
@@ -81,8 +80,7 @@ public:
     const int buttonWidth = button.getWidth();
     const int buttonHeight = button.getHeight();
     const String buttonText = button.getButtonText();
-		const int yIndent = button.proportionOfHeight (0.1f);// * 2;
-		const int cornerSize = jmin (buttonHeight, buttonWidth) / 2;
+		const int yIndent = button.proportionOfHeight (0.1f);
 		const int leftIndent = buttonWidth > 150 ? yIndent * 4 : 5;
 		
     // Button Name
@@ -99,9 +97,8 @@ public:
 
   void drawButtonBackground (juce::Graphics& g, juce::Button& button, const juce::Colour& backgroundColour,
                               bool isButtonHighlighted, bool isButtonDown) {
-    auto buttonArea = button.getLocalBounds().toFloat().reduced (0.5f);
-    float cornerSize = 5.f;
-    
+    auto buttonArea = button.getLocalBounds().toFloat();
+    float borderSize = buttonArea.getHeight() * ((button.getProperties()["thickBorder"]) ? 0.08 : 0.04);
     Colour myColour = Colour(0xff3f3f3f);
     String btnColour = button.getProperties()["colour"];
     myColour = Colour::fromString(btnColour);
@@ -123,10 +120,11 @@ public:
     } else {
       g.setColour (myColour);
     }   
-    g.fillRoundedRectangle (buttonArea, cornerSize);  
+    g.fillRoundedRectangle (buttonArea, borderSize * 1.5);  
     if (button.getToggleState()) {
       g.setColour (Colour(0xffe5e5e5));
-      g.drawRoundedRectangle (buttonArea, cornerSize, 2.f);  
+      buttonArea = buttonArea.withSizeKeepingCentre(buttonArea.getWidth() - borderSize, buttonArea.getHeight() - borderSize);
+      g.drawRoundedRectangle (buttonArea, borderSize, borderSize);  
     }            
   }
 };

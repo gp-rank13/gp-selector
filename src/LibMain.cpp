@@ -48,6 +48,9 @@ void LibMain::InvokeMenu(int index)
                   case 4:
                     ExtensionWindow::toggleLargeScrollArea();
                     break;
+                  case 5:
+                    ExtensionWindow::toggleThickBorders();
+                    break;
                   default:
                      break;   
                }
