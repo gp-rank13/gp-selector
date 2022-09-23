@@ -80,7 +80,7 @@ public:
     const auto padding = button.getHeight() * 0.3;
     const String buttonText = button.getButtonText();
 		const int yIndent = button.proportionOfHeight (0.1f);
-		const int leftIndent = buttonWidth > 150 ? padding + (yIndent * 4) : padding + 5;
+		const int leftIndent = buttonWidth > 160 ? padding + (yIndent * 4) : padding + 5;
 		
     // Button Name
     Font font2 (juce::jmax(buttonHeight * 0.4f, 16.f));
