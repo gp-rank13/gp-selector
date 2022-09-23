@@ -35,7 +35,7 @@ public:
     // Button Name
     Font font2 (juce::jmax(button.getHeight () * 0.4f, 16.f));
     g.setFont (font2);
-    g.setColour  (button.getToggleState () ? Colours::white : Colour(0xffc5c5c5));
+    g.setColour (button.getToggleState () ? Colours::white : Colour(0xffc5c5c5));
     g.drawFittedText (button.getButtonText (),
       leftIndent + (numberWidth*1.5), yIndent, textWidth - (numberWidth*1.5), button.getHeight () - yIndent * 2,
       Justification::left, rows, 1.0f);
@@ -45,9 +45,7 @@ public:
                               bool isButtonHighlighted, bool isButtonDown) {
     auto buttonArea = button.getLocalBounds().toFloat();
     float borderSize = buttonArea.getHeight() * ((button.getProperties()["thickBorder"]) ? 0.08 : 0.04);
-    Colour myColour = Colour(0xff1f1f1f);
-    String btnColour = button.getProperties()["colour"];
-    myColour = Colour::fromString(btnColour);
+    Colour buttonColor = Colour::fromString(button.getProperties()["colour"].toString());
 
     if (button.getToggleState()) {
       g.setColour (Colour(0xff6a6a6a));
@@ -56,7 +54,7 @@ public:
     } else if (isButtonDown) {
       g.setColour (Colour(0xff9a9a9a));
     } else {
-      g.setColour (myColour);
+      g.setColour (buttonColor);
     }   
     g.fillRoundedRectangle (buttonArea, borderSize * 1.5);
     if (button.getToggleState()) {
@@ -79,14 +77,15 @@ public:
       .withMultipliedAlpha (0.5f));
     const int buttonWidth = button.getWidth();
     const int buttonHeight = button.getHeight();
+    const auto padding = button.getHeight() * 0.3;
     const String buttonText = button.getButtonText();
 		const int yIndent = button.proportionOfHeight (0.1f);
-		const int leftIndent = buttonWidth > 150 ? yIndent * 4 : 5;
+		const int leftIndent = buttonWidth > 150 ? padding + (yIndent * 4) : padding + 5;
 		
     // Button Name
     Font font2 (juce::jmax(buttonHeight * 0.4f, 16.f));
     g.setFont (font2);
-    g.setColour (Colour(0xffe5e5e5));
+    g.setColour (button.getToggleState() ? Colours::white : Colour(0xffe5e5e5));
     int availableWidth = buttonWidth - leftIndent;
     int textWidth = (int) font.getStringWidthFloat(buttonText);
     int textBuffer = availableWidth - textWidth;
@@ -98,33 +97,41 @@ public:
   void drawButtonBackground (juce::Graphics& g, juce::Button& button, const juce::Colour& backgroundColour,
                               bool isButtonHighlighted, bool isButtonDown) {
     auto buttonArea = button.getLocalBounds().toFloat();
+    auto highlightArea = buttonArea;
+    auto padding = buttonArea.getHeight() * 0.3;
+    buttonArea.setLeft(padding);
     float borderSize = buttonArea.getHeight() * ((button.getProperties()["thickBorder"]) ? 0.08 : 0.04);
-    Colour myColour = Colour(0xff3f3f3f);
-    String btnColour = button.getProperties()["colour"];
-    myColour = Colour::fromString(btnColour);
+    Colour buttonColor = Colour::fromString(button.getProperties()["colour"].toString());
+    Colour borderColour = Colour::fromString(button.getProperties()["borderColor"].toString());
 
     if (button.getToggleState()) {
-      if (myColour == Colour(0xff353535)) {
+      if (buttonColor == Colour::fromString(DEFAULT_SUBBUTTON_COLOR)) {
         g.setColour (Colour(0xff6A6A6A));
       } else {
-        g.setColour (myColour);
+        g.setColour (buttonColor);
       }      
     } else if (isButtonHighlighted && !isButtonDown) {
-      if (myColour == Colour(0xff353535)) {
-        g.setColour (myColour.withBrightness(myColour.getBrightness() + 0.1f));
+      if (buttonColor == Colour::fromString(DEFAULT_SUBBUTTON_COLOR)) {
+        g.setColour (buttonColor.withBrightness(buttonColor.getBrightness() + 0.1f));
       } else {
-        g.setColour (myColour.withBrightness(myColour.getBrightness() - 0.1f));
+        g.setColour (buttonColor.withBrightness(buttonColor.getBrightness() - 0.1f));
       }
     } else if (isButtonDown) {
       g.setColour (Colour(0xff9a9a9a));
     } else {
-      g.setColour (myColour);
+      g.setColour (buttonColor);
     }   
     g.fillRoundedRectangle (buttonArea, borderSize * 1.5);  
     if (button.getToggleState()) {
-      g.setColour (Colour(0xffe5e5e5));
+      g.setColour (borderColour);
       buttonArea = buttonArea.withSizeKeepingCentre(buttonArea.getWidth() - borderSize, buttonArea.getHeight() - borderSize);
       g.drawRoundedRectangle (buttonArea, borderSize, borderSize);  
+
+      // Button Highlight
+      highlightArea.setX(padding/4.0);
+      highlightArea.setWidth(padding/4.0);
+      g.setColour (Colours::white);
+      g.fillRoundedRectangle (highlightArea, borderSize);  
     }            
   }
 };
@@ -132,9 +139,9 @@ public:
 class subButtonHighlightLookAndFeel : public LookAndFeel_V4 {
 public:
   void drawLabel (Graphics& g, Label& label) {
-    auto labelArea = label.getLocalBounds().toFloat().reduced (0.5f);
+    auto labelArea = label.getLocalBounds().toFloat();
     float cornerSize = 5.f;
-    g.setColour (Colours::white);
+    g.setColour (Colours::grey);
     g.fillRoundedRectangle (labelArea, cornerSize);
   }
 };

@@ -35,5 +35,8 @@ const int DEFAULT_VARIATIONS_SONGPARTS = 10;
 
 // GUI defaults
 const std::string DEFAULT_WINDOW_POSITION = "100,100,300,600";
+const juce::String DEFAULT_BUTTON_COLOR = "FF3F3F3F";
+const juce::String DEFAULT_SUBBUTTON_COLOR = "FF353535";
+const juce::String DEFAULT_BORDER_COLOR = "FFE5E5E5";
 
 #endif

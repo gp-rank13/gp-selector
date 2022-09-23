@@ -3,6 +3,7 @@ ZeroBasedNumbers = false
 ImmediateSwitching = true
 LargeScrollArea = false
 ThickBorders = false
+BorderColor = FFE5E5E5
 RemoveColorKeywordFromName = false
 PositionAndSize = 100,100,300,600
 

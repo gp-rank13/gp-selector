@@ -149,6 +149,7 @@ ExtensionWindow::ExtensionWindow ()
     }
     subButtons[0]->setToggleState (true, dontSendNotification);
     container.setBounds(5, 50, 100, 500);
+    container.addAndMakeVisible(highlight.get());
 
     for (size_t i = 0; i < buttons.size(); ++i) {
         container.addAndMakeVisible(buttons[i]);
@@ -159,7 +160,6 @@ ExtensionWindow::ExtensionWindow ()
         container.addAndMakeVisible(subButtons[i]);
         subButtons[i]->setVisible(false);
     }
-    container.addAndMakeVisible(highlight.get());
     draggableResizer.addMouseListener(this, true);
     draggableResizer.setMouseCursor(MouseCursor::LeftRightResizeCursor);
     draggableResizer.setBounds (250,50, 15, getHeight());
@@ -242,12 +242,8 @@ void ExtensionWindow::resized()
     //auto buttonSize = (bounds.getWidth()) / columns;
     bool largeScrollArea = preferences->getProperty("LargeScrollArea");
     auto buttonSize = (largeScrollArea) ? bounds.getWidth() - largeScrollAreaWidth : bounds.getWidth();
-
-    auto pad = buttonSize / 40;
-    pad = pad + 0.5 - (pad < 0); 
-    int padding = (int)pad;
     int buttonHeight = ((int)(buttonSize/buttonHeightRatio) < minButtonHeight) ? minButtonHeight : (int)(buttonSize / buttonHeightRatio);
-
+    auto padding = buttonHeight * 0.1;
     int rowHeight = 1;
     auto x = draggableResizer.getX();
 
@@ -277,9 +273,6 @@ void ExtensionWindow::resized()
         subButtons[0]->setVisible(false);
         highlight->setVisible(false);
     } else {
-        if (subButtonDisplayCount == 1) {
-            //subButtons[0]->setToggleState(false, dontSendNotification);
-        }
         highlight->setVisible(true);
     }
 
@@ -304,7 +297,6 @@ void ExtensionWindow::resized()
     } else {
         pinPinnedButton->setBounds (r.removeFromTop (10));
         pinPinnedButton->setBounds (r.removeFromRight (35).withSizeKeepingCentre (13, 13));
-
     }
    
     int scrollbarBuffer = 2;
@@ -317,14 +309,14 @@ void ExtensionWindow::resized()
         if (buttons[i]->getToggleState()) {  // Display sub buttons
             selectedButton = i;
             for (size_t j = 0; j < subButtonDisplayCount; ++j) {
-                subButtons[j]->setBounds (buttonSize * (j % columns) + (padding*4),
+               subButtons[j]->setBounds (buttonSize * (j % columns) + padding,
                                        buttonHeight * ((j+1) / columns) + (buttonHeight * (i / columns) + padding),
-                                       buttonSize - (padding*4) - scrollbarBuffer,
+                                       buttonSize - padding - scrollbarBuffer,
                                        buttonHeight - padding);
             }
-            highlight->setBounds (padding*2, 
+            highlight->setBounds ((buttonHeight * (1.0 - 1.0/1.2)), //padding*2, 
                                     buttonHeight + (buttonHeight * (i / columns) + padding),
-                                    padding/2,
+                                    ceil( buttonHeight * 0.3 / 4.0), //padding/2,
                                     buttonHeight * subButtonDisplayCount - padding
             );
         }
@@ -564,7 +556,7 @@ void ExtensionWindow::updateButtonNames(std::vector<std::string> buttonNames) {
         if (i < newButtonCount) {
             extension->buttons[i]->setButtonText(buttonNames[i]);
             extension->buttons[i]->setVisible(true);
-            extension->buttons[i]->getProperties().set("colour", "0xff3f3f3f");
+            extension->buttons[i]->getProperties().set("colour", DEFAULT_BUTTON_COLOR);
             extension->buttons[i]->getProperties().set("thickBorder", border);
         } else {
             extension->buttons[i]->setButtonText("");
@@ -614,6 +606,8 @@ void ExtensionWindow::updateSubButtonNames(std::vector<std::string> buttonNames)
     int newButtonCount = buttonNames.size();
     int currentButtonCount = extension->subButtons.size();
     bool border = extension->preferences->getProperty("ThickBorders");
+    String borderColor = extension->preferences->getProperty("BorderColor");
+
     if (newButtonCount > currentButtonCount) {
         addSubButtons(newButtonCount-currentButtonCount);
         currentButtonCount = newButtonCount;
@@ -638,10 +632,11 @@ void ExtensionWindow::updateSubButtonNames(std::vector<std::string> buttonNames)
             }
             extension->subButtons[i]->getProperties().set("colour", color);
             extension->subButtons[i]->getProperties().set("thickBorder", border);
+            extension->subButtons[i]->getProperties().set("borderColor", borderColor);
         } else {
             extension->subButtons[i]->setButtonText("");
             extension->subButtons[i]->setVisible(false);
-            extension->subButtons[i]->getProperties().set("colour", "FF353535");
+            extension->subButtons[i]->getProperties().set("colour", DEFAULT_SUBBUTTON_COLOR);
             extension->subButtons[i]->getProperties().set("name", "");
         }
     }
@@ -878,6 +873,7 @@ void ExtensionWindow::processPreferencesDefaults(StringPairArray prefs) {
     StringArray positionSize = StringArray::fromTokens(prefs.getValue("PositionAndSize", "100,100,300,600"), ",", "");
     setWindowPositionAndSize(positionSize[0].getIntValue(), positionSize[1].getIntValue(), positionSize[2].getIntValue(), positionSize[3].getIntValue());
     extension->preferences->setProperty("ThickBorders", prefs.getValue("ThickBorders", "") == "true" ? true : false);
+    extension->preferences->setProperty("BorderColor", prefs.getValue("BorderColor", DEFAULT_BORDER_COLOR));
 }
 
 void ExtensionWindow::processPreferencesColors(StringPairArray prefs) {
