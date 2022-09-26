@@ -89,14 +89,26 @@ ExtensionWindow::ExtensionWindow ()
     pinPinnedButton->setVisible(false);
 
     Path p5;
-    p5.loadPathFromData (refreshPathData, sizeof (refreshPathData));
+    p5.loadPathFromData (fullscreenActivatePathData, sizeof (fullscreenActivatePathData));
     p5.applyTransform(juce::AffineTransform::verticalFlip(0));
-    refreshButton.reset (new ShapeButton ( "refreshButton", Colours::white, Colours::lightgrey, Colours::white ));
-    refreshButton->setShape (p5, true, true, false);
-    refreshButton->setClickingTogglesState(true);
-    refreshButton->setTooltip("Refresh list of songs/rackspaces");
-    refreshButton->addListener (this);
-    addAndMakeVisible (refreshButton.get());
+    fullscreenActivateButton.reset (new ShapeButton ( "fullscreenActivateButton", Colours::white, Colours::lightgrey, Colours::white ));
+    fullscreenActivateButton->setShape (p5, true, true, false);
+    fullscreenActivateButton->setClickingTogglesState(true);
+    fullscreenActivateButton->setTooltip("Enter fullscreen");
+    fullscreenActivateButton->addListener (this);
+    addAndMakeVisible (fullscreenActivateButton.get());
+    fullscreenActivateButton->setVisible(false);
+
+    Path p6;
+    p6.loadPathFromData (fullscreenDeactivatePathData, sizeof (fullscreenDeactivatePathData));
+    p6.applyTransform(juce::AffineTransform::verticalFlip(0));
+    fullscreenDeactivateButton.reset (new ShapeButton ( "fullscreenDeactivateButton", Colours::white, Colours::lightgrey, Colours::white ));
+    fullscreenDeactivateButton->setShape (p6, true, true, false);
+    fullscreenDeactivateButton->setClickingTogglesState(true);
+    fullscreenDeactivateButton->setTooltip("Exit fullscreen");
+    fullscreenDeactivateButton->addListener (this);
+    addAndMakeVisible (fullscreenDeactivateButton.get());
+    fullscreenDeactivateButton->setVisible(false);
 
     btnCurrent.reset (new TextButton ("btnCurrent"));
     btnCurrent->setLookAndFeel(minimalistSongLnF);
@@ -170,7 +182,7 @@ ExtensionWindow::ExtensionWindow ()
     viewport.setBounds(5, 40, 250, 50 * buttons.size());
     viewport.setViewedComponent(&container, false);
     viewportRight.setViewedComponent(&containerRight, false);
-    viewport.getVerticalScrollBar().setColour(ScrollBar::thumbColourId, Colour (0xff2a2a2a));
+    viewport.getVerticalScrollBar().setColour(ScrollBar::thumbColourId, Colour::fromString(BACKGROUND_COLOR));
     addAndMakeVisible(viewport);
     addAndMakeVisible(viewportRight);
     addAndMakeVisible(draggableResizer);
@@ -210,7 +222,7 @@ ExtensionWindow::~ExtensionWindow()
 
 void ExtensionWindow::paint (Graphics& g)
 {
-    g.fillAll (Colour (0xff2a2a2a));
+    g.fillAll (Colour::fromString(BACKGROUND_COLOR));
 }
 
 void ExtensionWindow::setWindowPositionAndSize(int x, int y, int w, int h) {
@@ -239,7 +251,6 @@ void ExtensionWindow::resized()
     }
 
     auto bounds = container.getBounds();
-    //auto buttonSize = (bounds.getWidth()) / columns;
     bool largeScrollArea = preferences->getProperty("LargeScrollArea");
     auto buttonSize = (largeScrollArea) ? bounds.getWidth() - largeScrollAreaWidth : bounds.getWidth();
     int buttonHeight = ((int)(buttonSize/buttonHeightRatio) < minButtonHeight) ? minButtonHeight : (int)(buttonSize / buttonHeightRatio);
@@ -291,12 +302,19 @@ void ExtensionWindow::resized()
     } else {
         sidePanelCloseButton->setBounds (r.removeFromRight (50).withSizeKeepingCentre (25, 25));
     }
-    refreshButton->setBounds (r.removeFromRight (25).withSizeKeepingCentre (25, 25));
     if (pinUnpinnedButton->isVisible()) {
-        pinUnpinnedButton->setBounds (r.removeFromRight (35).withSizeKeepingCentre (25, 25));
+        pinUnpinnedButton->setBounds (r.removeFromRight (22).withSizeKeepingCentre (25, 25));
     } else {
-        pinPinnedButton->setBounds (r.removeFromTop (10));
-        pinPinnedButton->setBounds (r.removeFromRight (35).withSizeKeepingCentre (13, 13));
+        r.setY(r.getY() + 5);
+        pinPinnedButton->setBounds (r.removeFromRight (22).withSizeKeepingCentre (13, 13));
+        r.setY(r.getY() - 5);
+    }
+    if (displayRightPanel) {
+        if (fullscreenActivateButton->isVisible()) {
+            fullscreenActivateButton->setBounds(r.removeFromRight(48).withSizeKeepingCentre (25, 25));
+        } else {
+            fullscreenDeactivateButton->setBounds(r.removeFromRight(48).withSizeKeepingCentre (25, 25));
+        }
     }
    
     int scrollbarBuffer = 2;
@@ -314,11 +332,13 @@ void ExtensionWindow::resized()
                                        buttonSize - padding - scrollbarBuffer,
                                        buttonHeight - padding);
             }
-            highlight->setBounds ((buttonHeight * (1.0 - 1.0/1.2)), //padding*2, 
+            auto highlightPadding = (buttonHeight - padding) * 0.3;
+            highlight->setBounds (buttonSize * (i % columns) + padding,
                                     buttonHeight + (buttonHeight * (i / columns) + padding),
-                                    ceil( buttonHeight * 0.3 / 4.0), //padding/2,
+                                    buttonSize - padding - scrollbarBuffer,
                                     buttonHeight * subButtonDisplayCount - padding
             );
+            highlight->getProperties().set("buttonHeight", buttonHeight - padding);
         }
     }
 
@@ -615,7 +635,7 @@ void ExtensionWindow::updateSubButtonNames(std::vector<std::string> buttonNames)
     for (auto i = 0; i < currentButtonCount; ++i) {
         if (i < newButtonCount) {
             String name = buttonNames[i];
-            String color = "ff353535";
+            String color = DEFAULT_SUBBUTTON_COLOR;
             extension->subButtons[i]->setButtonText(name);
             extension->subButtons[i]->getProperties().set("name", name);
             extension->subButtons[i]->setVisible(true);
@@ -723,11 +743,13 @@ void ExtensionWindow::buttonClicked (Button* buttonThatWasClicked)
             setSize(container.getWidth() + 500, getHeight());
             sidePanelCloseButton->setVisible(true);
             sidePanelOpenButton->setVisible(false);
+            fullscreenActivateButton->setVisible(true);
             clock->setVisible(true);
         } else {
             setSize(container.getWidth() + 10, getHeight());
             sidePanelCloseButton->setVisible(false);
             sidePanelOpenButton->setVisible(true);
+            fullscreenActivateButton->setVisible(false);
             clock->setVisible(false);
         }
         resized();
@@ -754,8 +776,27 @@ void ExtensionWindow::buttonClicked (Button* buttonThatWasClicked)
             lib->consoleLog("Pinned GP Selector (x,y,w,h): " + std::to_string(window.getX()) + "," + std::to_string(window.getY()) + "," + std::to_string(window.getWidth()) + "," + std::to_string(window.getHeight()));
         }
         resized();
-    } else if (buttonThatWasClicked == refreshButton.get()) {
-        refreshUI();
+    } else if (buttonThatWasClicked == fullscreenActivateButton.get() || buttonThatWasClicked == fullscreenDeactivateButton.get()) {
+        bool newFullscreenStatus = !extension->extensionWindow->isFullScreen();
+        #ifdef _WIN32
+            newFullscreenStatus = !(Desktop::getInstance().getKioskModeComponent() == getTopLevelComponent());
+            Desktop::getInstance().setKioskModeComponent(newFullscreenStatus ? getTopLevelComponent() : nullptr, false);
+        #else
+            extension->extensionWindow->setFullScreen(newFullscreenStatus);
+        #endif
+
+        fullscreenActivateButton->setVisible(!newFullscreenStatus);
+        fullscreenDeactivateButton->setVisible(newFullscreenStatus);
+        if (newFullscreenStatus) {
+            sidePanelCloseButton->setColours(Colours::grey, Colours::grey, Colours::grey);
+            sidePanelCloseButton->setTooltip("Disabled while in fullscreen");
+            sidePanelCloseButton->removeListener(extension);
+        } else {
+            sidePanelCloseButton->setColours(Colours::white, Colours::lightgrey, Colours::white);
+            sidePanelCloseButton->setTooltip("Close expanded window");
+            sidePanelCloseButton->addListener(extension);
+        }
+        resized();
     } else if (buttonThatWasClicked->getProperties()["type"] == "button") {
         bool switchRackSongImmediately = preferences->getProperty("ImmediateSwitching");
         bool inSetlist = lib->inSetlistMode();
@@ -870,7 +911,7 @@ void ExtensionWindow::processPreferencesDefaults(StringPairArray prefs) {
     extension->preferences->setProperty("ImmediateSwitching", prefs.getValue("ImmediateSwitching", "") == "false" ? false : true);
     setLargeScrollArea(prefs.getValue("LargeScrollArea", "") == "true" ? true : false);
     removeColorKeywordFromName(prefs.getValue("RemoveColorKeywordFromName", "") == "true" ? true : false); 
-    StringArray positionSize = StringArray::fromTokens(prefs.getValue("PositionAndSize", "100,100,300,600"), ",", "");
+    StringArray positionSize = StringArray::fromTokens(prefs.getValue("PositionAndSize", DEFAULT_WINDOW_POSITION), ",", "");
     setWindowPositionAndSize(positionSize[0].getIntValue(), positionSize[1].getIntValue(), positionSize[2].getIntValue(), positionSize[3].getIntValue());
     extension->preferences->setProperty("ThickBorders", prefs.getValue("ThickBorders", "") == "true" ? true : false);
     extension->preferences->setProperty("BorderColor", prefs.getValue("BorderColor", DEFAULT_BORDER_COLOR));

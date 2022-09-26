@@ -159,6 +159,8 @@ public:
   std::unique_ptr<ShapeButton> pinUnpinnedButton;
   std::unique_ptr<ShapeButton> pinPinnedButton;
   std::unique_ptr<ShapeButton> refreshButton;
+  std::unique_ptr<ShapeButton> fullscreenActivateButton;
+  std::unique_ptr<ShapeButton> fullscreenDeactivateButton;
 
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (ExtensionWindow)
 };
