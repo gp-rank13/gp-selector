@@ -16,28 +16,30 @@ public:
 		g.setColour (button.findColour (button.getToggleState () ? TextButton::textColourOnId
 			: TextButton::textColourOffId)
       .withMultipliedAlpha (0.5f));
-    const int buttonWidth = button.getWidth();
-    const int padding = (int)(buttonWidth/10);
-		const int yIndent = button.proportionOfHeight (0.1f);
-    const int leftIndent = buttonWidth > (160) ? yIndent * 2 : 5;
-		const int textWidth = button.getWidth () - leftIndent;
+    
+    const auto buttonWidth = (double) button.getWidth();
+    const auto buttonHeight = (double) button.getHeight();
+    const String buttonText = button.getButtonText();
+    const auto yIndent = buttonHeight * 0.1;
+		const auto leftIndent = buttonWidth > 160 ? yIndent * 2 : 5;
+    auto availableWidth = buttonWidth - leftIndent;
     const int rows = 1;
 		
     // Button number
     Font font1 (juce::jmax(button.getHeight () * 0.4f, 16.f));
     g.setFont (font1);
     auto buttonNumber = button.getProperties()["displayIndex"];
-    int numberWidth = (int) font1.getStringWidthFloat(button.getName()); 
+    auto numberWidth = font1.getStringWidthFloat(button.getName()); 
     g.drawFittedText (buttonNumber,
-      leftIndent, yIndent, numberWidth, button.getHeight () - yIndent * 2,
+      leftIndent, yIndent, numberWidth, buttonHeight - yIndent * 2,
       Justification::right, rows, 0.5f);
 
     // Button Name
     Font font2 (juce::jmax(button.getHeight () * 0.4f, 16.f));
     g.setFont (font2);
     g.setColour (button.getToggleState () ? Colours::white : Colour(0xffc5c5c5));
-    g.drawFittedText (button.getButtonText (),
-      leftIndent + (numberWidth*1.5), yIndent, textWidth - (numberWidth*1.5), button.getHeight () - yIndent * 2,
+    g.drawFittedText (buttonText,
+      leftIndent + (numberWidth * 1.5), yIndent, availableWidth - (numberWidth * 1.5), buttonHeight - yIndent * 2,
       Justification::left, rows, 1.0f);
 	}
 
@@ -45,6 +47,7 @@ public:
                               bool isButtonHighlighted, bool isButtonDown) {
     auto buttonArea = button.getLocalBounds().toFloat();
     float borderSize = buttonArea.getHeight() * ((button.getProperties()["thickBorder"]) ? 0.08 : 0.04);
+    float cornerSize = buttonArea.getHeight() * 0.08;
     Colour buttonColor = Colour::fromString(button.getProperties()["colour"].toString());
 
     if (button.getToggleState()) {
@@ -56,11 +59,11 @@ public:
     } else {
       g.setColour (buttonColor);
     }   
-    g.fillRoundedRectangle (buttonArea, borderSize * 1.5);
+    g.fillRoundedRectangle (buttonArea, cornerSize);
     if (button.getToggleState()) {
       g.setColour (Colours::white);
       buttonArea = buttonArea.withSizeKeepingCentre(buttonArea.getWidth() - borderSize, buttonArea.getHeight() - borderSize);      
-      g.drawRoundedRectangle (buttonArea, borderSize, borderSize);  
+      g.drawRoundedRectangle (buttonArea, cornerSize, borderSize);  
     }               
   }
 };
@@ -75,20 +78,18 @@ public:
 		g.setColour (button.findColour (button.getToggleState () ? TextButton::textColourOnId
 			: TextButton::textColourOffId)
       .withMultipliedAlpha (0.5f));
-    const int buttonWidth = button.getWidth();
-    const int buttonHeight = button.getHeight();
-    const auto padding = button.getHeight() * 0.3;
+    const auto buttonWidth = (double) button.getWidth();
+    const auto buttonHeight = (double) button.getHeight();
+    const auto padding = buttonHeight * 0.3;
     const String buttonText = button.getButtonText();
-		const int yIndent = button.proportionOfHeight (0.1f);
-		const int leftIndent = buttonWidth > 160 ? padding + (yIndent * 4) : padding + 5;
-		
+    const auto yIndent = buttonHeight * 0.1;
+		const auto leftIndent = buttonWidth > 160 ? padding + (yIndent * 4) : padding + 5;
+
     // Button Name
-    Font font2 (juce::jmax(buttonHeight * 0.4f, 16.f));
+    Font font2 (juce::jmax(buttonHeight * 0.4, 16.0));
     g.setFont (font2);
     g.setColour (button.getToggleState() ? Colours::white : Colour(0xffe5e5e5));
-    int availableWidth = buttonWidth - leftIndent;
-    int textWidth = (int) font.getStringWidthFloat(buttonText);
-    int textBuffer = availableWidth - textWidth;
+    auto availableWidth = buttonWidth - leftIndent;
     g.drawFittedText (buttonText,
       leftIndent, yIndent, availableWidth, buttonHeight - yIndent * 2,
       Justification::left, 1, 1.0f);
@@ -97,10 +98,11 @@ public:
   void drawButtonBackground (juce::Graphics& g, juce::Button& button, const juce::Colour& backgroundColour,
                               bool isButtonHighlighted, bool isButtonDown) {
     auto buttonArea = button.getLocalBounds().toFloat();
-    auto highlightArea = buttonArea;
+    auto highlightArea = button.getLocalBounds().toFloat();;
     auto padding = buttonArea.getHeight() * 0.3;
     buttonArea.setLeft(padding);
-    float borderSize = buttonArea.getHeight() * ((button.getProperties()["thickBorder"]) ? 0.08 : 0.04);
+    float borderSize = buttonArea.getHeight() * (button.getProperties()["thickBorder"] ? 0.08 : 0.04);
+    float cornerSize = buttonArea.getHeight() * 0.08;
     Colour buttonColor = Colour::fromString(button.getProperties()["colour"].toString());
     Colour borderColour = Colour::fromString(button.getProperties()["borderColor"].toString());
 
@@ -121,15 +123,15 @@ public:
     } else {
       g.setColour (buttonColor);
     }   
-    g.fillRoundedRectangle (buttonArea, borderSize * 1.5);  
+    g.fillRoundedRectangle (buttonArea, cornerSize);  
     if (button.getToggleState()) {
       g.setColour (borderColour);
       buttonArea = buttonArea.withSizeKeepingCentre(buttonArea.getWidth() - borderSize, buttonArea.getHeight() - borderSize);
-      g.drawRoundedRectangle (buttonArea, borderSize, borderSize);  
+      g.drawRoundedRectangle (buttonArea, cornerSize, borderSize);  
 
       // Button Highlight
       highlightArea.setX(padding/4.0);
-      highlightArea.setWidth(padding/4.0);
+      highlightArea.setWidth(padding/6.0);
       g.setColour (Colours::white);
       g.fillRoundedRectangle (highlightArea, borderSize);  
     }            
@@ -140,9 +142,13 @@ class subButtonHighlightLookAndFeel : public LookAndFeel_V4 {
 public:
   void drawLabel (Graphics& g, Label& label) {
     auto labelArea = label.getLocalBounds().toFloat();
+    auto highlightArea = label.getLocalBounds().toFloat();
+    auto padding = (float)label.getProperties()["buttonHeight"] * 0.3;
     float cornerSize = 5.f;
     g.setColour (Colours::grey);
-    g.fillRoundedRectangle (labelArea, cornerSize);
+    highlightArea.setX(padding/4.0);
+    highlightArea.setWidth(padding/6.0);
+    g.fillRoundedRectangle (highlightArea, cornerSize);
   }
 };
 
@@ -183,6 +189,7 @@ public:
       g.drawFittedText (buttonNumber,
       leftIndent*4, yIndent, numberWidth, button.getHeight () - yIndent * 2,
       Justification::right, rows, 0.5f);
+      
       // Button Name
       Font font2 (juce::jmax(button.getHeight () * 0.4f, 16.f));
 		  g.setFont (font2);
@@ -252,7 +259,7 @@ public:
     auto labelArea = label.getLocalBounds();
     g.setFont (Font (25.00f, Font::plain).withTypefaceStyle ("Regular"));
     g.setColour (Colours::white);
-    String title = (labelArea.getWidth() < 230 ? "Racks" : "Rackspaces");
+    String title = (labelArea.getWidth() < 240 ? "Racks" : "Rackspaces");
     g.drawFittedText (title,
 				15, 0, label.getWidth(), label.getHeight (),
 				Justification::centredLeft, 1, 1.0f);
