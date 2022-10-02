@@ -108,7 +108,7 @@ public:
   void static updateButtonLnF(std::string LnFname);
   void static setWindowPositionAndSize(int x, int y, int w, int h);
   Rectangle<int> getWindowPositionAndSize();
-  void static setWindowIcon();
+  Image static getWindowIcon();
   void mouseDrag (const MouseEvent& e) override
     {
         resized();

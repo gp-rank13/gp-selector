@@ -199,7 +199,7 @@ ExtensionWindow::ExtensionWindow ()
     #if JUCE_MAC
         extensionWindow->setResizeLimits(180, 250, 10000, 10000);
     #else
-        setWindowIcon();
+        extensionWindow->getPeer()->setIcon(getWindowIcon());
         extensionWindow->setResizeLimits(200, 250, 10000, 10000);
         extensionWindow->setResizeLimits(200, 250, 10000, 10000);
     #endif
@@ -228,17 +228,15 @@ Rectangle<int> ExtensionWindow::getWindowPositionAndSize() {
     return extension->extensionWindow->getBounds();
 }
 
-void ExtensionWindow::setWindowIcon() {
-    #ifdef _WIN32
-        Image img;
-        String imageBase64 = WINDOW_ICON;
-        MemoryOutputStream mo;
-        auto result = Base64::convertFromBase64(mo, imageBase64);
-        if (result) {
-            img = ImageFileFormat::loadFrom(mo.getData(), mo.getDataSize());
-        }
-        extension->extensionWindow->getPeer()->setIcon(img);
-    #endif
+Image ExtensionWindow::getWindowIcon() {
+    Image img;
+    String imageBase64 = WINDOW_ICON;
+    MemoryOutputStream mo;
+    auto result = Base64::convertFromBase64(mo, imageBase64);
+    if (result) {
+        img = ImageFileFormat::loadFrom(mo.getData(), mo.getDataSize());
+    }
+    return img;
 }
 
 void ExtensionWindow::resized()
@@ -792,7 +790,7 @@ void ExtensionWindow::buttonClicked (Button* buttonThatWasClicked)
         #ifdef _WIN32
             newFullscreenStatus = !(Desktop::getInstance().getKioskModeComponent() == getTopLevelComponent());
             Desktop::getInstance().setKioskModeComponent(newFullscreenStatus ? getTopLevelComponent() : nullptr, false);
-            if (!newFullscreenStatus) setWindowIcon();
+            if (!newFullscreenStatus) extension->extensionWindow->getPeer()->setIcon(getWindowIcon());
         #else
             extension->extensionWindow->setFullScreen(newFullscreenStatus);
         #endif
