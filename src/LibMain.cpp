@@ -12,6 +12,7 @@ namespace gigperformer {
 } // namespace gigperformer
 
 bool isGigFileLoading = false;
+bool isFirstGigFileOpened = true;
 
 int LibMain::GetMenuCount()
 {
@@ -114,7 +115,10 @@ void LibMain::OnStatusChanged(GPStatusType status) {
             break;
         case GPStatus_GigFinishedLoading:
             isGigFileLoading = false;
-            readPreferencesFile("");
+            if (isFirstGigFileOpened) {
+                readPreferencesFile("");
+                isFirstGigFileOpened = false;
+            }
             ExtensionWindow::refreshUI();
             break;
         default:
@@ -156,7 +160,6 @@ void LibMain::OnVariationChanged(int oldIndex, int newIndex) {
         ExtensionWindow::updateSubButtonNames(getVariationNames(rackspaceIndex));
         }
     }
-
 }
 
 void LibMain::OnSongChanged(int oldIndex, int newIndex) {
