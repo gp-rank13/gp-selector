@@ -237,7 +237,7 @@ void ExtensionWindow::setWindowIcon() {
         if (result) {
             img = ImageFileFormat::loadFrom(mo.getData(), mo.getDataSize());
         }
-        extensionWindow->getPeer()->setIcon(img);
+        extension->extensionWindow->getPeer()->setIcon(img);
     #endif
 }
 
