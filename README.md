@@ -6,7 +6,7 @@ An extension for [Gig Performer](https://gigperformer.com) that provides an addi
 
 The visibility of the window can also be controlled via widgets (e.g. it could be triggered by an external MIDI controller).
 
-![gp-selector](https://user-images.githubusercontent.com/107261652/175796291-79d16e7a-5957-4ed1-b38f-5214405c74d2.gif)
+![gp-selector-v1-6](https://user-images.githubusercontent.com/107261652/193566984-a2c4be98-ed7f-4821-98a0-c5a9e30c0a48.gif)
 
 
 > _Disclaimer: This is a user-created extension and is not supported by Deskew Technologies. Extensions can cause unexpected behaviour in Gig Performer, and in extreme situations could cause it to crash. Please test it thoroughly before using it in any live performances!_
@@ -30,23 +30,25 @@ When opening Gig Performer, a prompt will appear asking to confirm whether to in
 
 After installing the extension, the selector window can be displayed or hidden via a new **_Extensions_** entry in the Gig Performer menu bar. 
 
-<img width="320" alt="gp-selector-menu-1 3" src="https://user-images.githubusercontent.com/107261652/189471671-aff86742-6581-4e07-a660-6c99a48b1fc2.png">
+<img width="405" alt="gp-selector-menu-v1-6" src="https://user-images.githubusercontent.com/107261652/193559997-44f84a60-4ce0-4335-a1f9-03cf559e28a2.png">
 
 Additional menu bar items are available to:
 * **Toggle Zero-Based Numbers**: Switch between the rackspace/song numbering starting from 0 or starting from 1.
 * **Toggle Immediate Switching**: Control whether selecting a rackspace/song will immediately select it and the first variation/part. When disabled, this will allow a specific variation/part to be selected from any rackspace or song (without it's first variation/part automatically being activated).
 * **Toggle Large Scroll Area**: Add a blank area to the right of the buttons to be used for scrolling the list with your finger on touchscreens. This reduces the likelihood of accidentally selecting a button when scrolling.
+* **Toggle Thick Borders**: Add a thicker border for the selected rackspace/song and variation/part. This is useful when the custom button colors are being used.
 
 
 >Any changes to the default options will need to be re-applied every time Gig Performer is opened, unless you use the optional preferences file (refer to the details below).
 
 ### Header Icons
 
-<img width="108" alt="gp-selector-toolbar-icons" src="https://user-images.githubusercontent.com/107261652/189511391-2905a110-011a-486f-b69f-0eb1422cad20.png">
+<img width="118" alt="gp-selector-icons-expanded" src="https://user-images.githubusercontent.com/107261652/193559162-0f586b6b-e3e3-48a0-ae6c-652a34b43556.png">
+
 
 The icons in the upper-right corner of the extension header provide functionality to:
+* **Fullscreen** mode for the extension window (only visible when the window is in its expanded mode).
 * **Pin** the extension window to the top of all open windows.
-* **Refresh** the list of rackspaces/songs and their corresponding variations/parts. This is useful if the list gets out of sync with Gig Performer.
 * **Expand** the window to display the large rackspace/song names (current/previous/next). The previous and next names can be clicked to move to this rackspace/song.
 
 ### Widgets
@@ -73,6 +75,8 @@ The optional preferences file included in the release download (_GPSelectorPrefs
 ZeroBasedNumbers = false
 ImmediateSwitching = true
 LargeScrollArea = false
+ThickBorders = false
+BorderColor = FFE5E5E5
 RemoveColorKeywordFromName = false
 PositionAndSize = 100,100,300,600
 
