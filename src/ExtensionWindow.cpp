@@ -211,6 +211,7 @@ ExtensionWindow::~ExtensionWindow()
     btnClear = nullptr;
     setLookAndFeel (nullptr);
     clockTimer.stopTimer();
+    refreshTimer.stopTimer();
 }
 
 void ExtensionWindow::paint (Graphics& g)
@@ -363,6 +364,7 @@ void ExtensionWindow::resized()
 }
 
 void ExtensionWindow::refreshUI() {
+    if (extension == nullptr) return;
     // Reset all buttons
     for (int i = 0; i < extension->buttons.size(); ++i) {
         extension->buttons[i]->setToggleState(false, dontSendNotification);
@@ -449,6 +451,7 @@ String ExtensionWindow::buttonName(int index) {
 }
 
 bool ExtensionWindow::isButtonSelected(int index) {
+    if (extension == nullptr) return false;
     bool selected = false;
     if (index < extension->subButtons.size() && index >= 0) {
         return extension->buttons[index]->getToggleState();
@@ -488,6 +491,7 @@ int ExtensionWindow::getVisibleSubButtonCount() {
 }
 
 void ExtensionWindow::selectButton(int index) {
+    if (extension == nullptr) return;
     if (index < extension->buttons.size() && index >= 0) {
         extension->buttons[index]->setToggleState(true, dontSendNotification);
         Rectangle<int> viewportBounds = extension->viewport.getViewArea();
@@ -524,6 +528,7 @@ void ExtensionWindow::updatePrevCurrNext(int index) {
 }
 
 bool ExtensionWindow::isSubButtonSelected(int index) {
+    if (extension == nullptr) return false;
     bool selected = false;
     if (index < extension->subButtons.size() && index >= 0) {
         return extension->subButtons[index]->getToggleState();
@@ -546,6 +551,7 @@ bool ExtensionWindow::isSubButtonsCollapsed() {
 }
 
 void ExtensionWindow::selectSubButton(int index) {
+    if (extension == nullptr) return;
     if (index < extension->subButtons.size() && index >= 0) {
         extension->subButtons[index]->setToggleState(true, dontSendNotification);
         updateViewportPositionForSubButtons();
@@ -574,6 +580,7 @@ void ExtensionWindow::addButtons(int count) {
 }
 
 void ExtensionWindow::updateButtonNames(std::vector<std::string> buttonNames) {
+    if (extension == nullptr) return;
     int newButtonCount = buttonNames.size();
     int currentButtonCount = extension->buttons.size();
     bool border = extension->preferences->getProperty("ThickBorders");
@@ -632,6 +639,7 @@ void ExtensionWindow::addSubButtons(int count) {
 }
 
 void ExtensionWindow::updateSubButtonNames(std::vector<std::string> buttonNames) {
+    if (extension == nullptr) return;
     int newButtonCount = buttonNames.size();
     int currentButtonCount = extension->subButtons.size();
     bool border = extension->preferences->getProperty("ThickBorders");
@@ -909,9 +917,6 @@ void ExtensionWindow::initialize() {
 
 void ExtensionWindow::finalize()
 {
-    delete lib;
-    lib = nullptr;
-
     delete extension;
     extension = nullptr;
 }
