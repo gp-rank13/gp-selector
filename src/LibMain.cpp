@@ -11,8 +11,8 @@ namespace gigperformer {
    } // namespace sdk
 } // namespace gigperformer
 
-bool isGigFileLoading = false;
-bool isFirstGigFileOpened = true;
+bool isGigFileLoading = true;
+bool isFirstGigFileOpened = false;
 
 int LibMain::GetMenuCount()
 {
@@ -115,9 +115,9 @@ void LibMain::OnStatusChanged(GPStatusType status) {
             break;
         case GPStatus_GigFinishedLoading:
             isGigFileLoading = false;
-            if (isFirstGigFileOpened) {
+            if (!isFirstGigFileOpened) {
                 readPreferencesFile("");
-                isFirstGigFileOpened = false;
+                isFirstGigFileOpened = true;
             }
             ExtensionWindow::refreshUI();
             break;

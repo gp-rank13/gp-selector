@@ -909,11 +909,10 @@ void ExtensionWindow::initialize() {
 
 void ExtensionWindow::finalize()
 {
-    delete lib;
-    lib = nullptr;
-
-    delete extension;
-    extension = nullptr;
+    if (extension != nullptr) {
+        delete extension;
+        extension = nullptr;
+    }
 }
 
 void ExtensionWindow::processPreferencesDefaults(StringPairArray prefs) {
