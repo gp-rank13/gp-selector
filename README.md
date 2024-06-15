@@ -19,6 +19,8 @@ Mac users will need to move the _libGPSelector.dylib_ file into this folder and 
 ```
 /Users/Shared/Gig Performer/Extensions
 ```
+Mac users will also need to authorize the extension via System Preferences > Privacy & Security. Scroll down until you locate an entry that references the extension. Allow it to be loaded and then restart Gig Performer.
+
 Windows users will need to move the _GPSelector.dll_ file into this folder and then restart Gig Performer:
 ```
 C:\Users\Public\Documents\Gig Performer\Extensions
