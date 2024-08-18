@@ -915,10 +915,65 @@ void ExtensionWindow::initialize() {
     });
 }
 
-void ExtensionWindow::finalize()
-{
+void ExtensionWindow::finalize() {
     delete extension;
     extension = nullptr;
+}
+
+void ExtensionWindow::songChanged(int songIndex, std::vector<std::string> songNames) {
+    if (extension == nullptr) return;
+    MessageManager::getInstance()->callAsync([songIndex, songNames]() {
+        updateButtonNames(songNames);
+        if (!isButtonSelected(songIndex)) { // If selected in GP directly, ensure buttons are in sync
+            selectButton(songIndex);
+            updateSubButtonNames(lib->getSongPartNames(songIndex));
+            selectSubButton(lib->getCurrentSongpartIndex());
+        } else {
+            updateSubButtonNames(lib->getSongPartNames(songIndex));
+        }
+    });
+}
+
+void ExtensionWindow::ExtensionWindow::songPartChanged(int songPartIndex, int songIndex) {
+    if (extension == nullptr) return;
+    MessageManager::getInstance()->callAsync([songPartIndex, songIndex]() {
+        if (!isSubButtonSelected(songPartIndex)) {
+            updateSubButtonNames(lib->getSongPartNames(songIndex));
+            selectSubButton(songPartIndex);
+        }
+    });
+}
+
+void ExtensionWindow::setlistChanged(int songIndex, std::vector<std::string> songNames) {
+    if (extension == nullptr) return;
+        ExtensionWindow::updateButtonNames(songNames);
+        ExtensionWindow::selectButton(songIndex);
+}
+
+void ExtensionWindow::rackspaceChanged(int rackspaceIndex, std::vector<std::string> rackspaceNames) {
+    if (extension == nullptr) return;
+    MessageManager::getInstance()->callAsync([rackspaceIndex, rackspaceNames]() {
+        if (rackspaceIndex >= 0) {
+            updateButtonNames(rackspaceNames);
+            if (!isButtonSelected(rackspaceIndex)) { // If selected in GP directly, ensure buttons are in sync
+                selectButton(rackspaceIndex);
+                updateSubButtonNames(lib->getVariationNames(rackspaceIndex));
+                selectSubButton(lib->getCurrentVariationIndex());
+            } else {
+                updateSubButtonNames(lib->getVariationNames(rackspaceIndex));
+            }
+        }
+    });
+}
+
+void ExtensionWindow::variationChanged(int variationIndex, int rackspaceIndex) {
+    if (extension == nullptr) return;
+    MessageManager::getInstance()->callAsync([variationIndex, rackspaceIndex]() {
+        if (!isSubButtonSelected(variationIndex)) {
+            selectSubButton(variationIndex);
+            updateSubButtonNames(lib->getVariationNames(rackspaceIndex));
+        }
+    });
 }
 
 void ExtensionWindow::processPreferencesDefaults(StringPairArray prefs) {

@@ -35,11 +35,11 @@ void LibMain::InvokeMenu(int index)
             switch (index)
                {
                   case 0:
-                      ExtensionWindow::displayWindow(true);
-                     break;
+                    ExtensionWindow::displayWindow(true);
+                    break;
                   case 1:
-                     ExtensionWindow::displayWindow(false);
-                     break;
+                    ExtensionWindow::displayWindow(false);
+                    break;
                   case 2:
                     ExtensionWindow::toggleZeroBasedNumbering();
                     break;
@@ -53,7 +53,7 @@ void LibMain::InvokeMenu(int index)
                     ExtensionWindow::toggleThickBorders();
                     break;
                   default:
-                     break;   
+                    break;   
                }
          }
 }
@@ -137,61 +137,35 @@ void LibMain::OnClose() {
 void LibMain::OnRackspaceActivated() {
     if (isGigFileLoading) return;
     if (!inSetlistMode()) {
-        int index = getCurrentRackspaceIndex();
-        if (index >= 0) {
-            ExtensionWindow::updateButtonNames(getRackspaceNames());
-            if (!ExtensionWindow::isButtonSelected(index)) { // If selected in GP directly, ensure buttons are in sync
-                ExtensionWindow::selectButton(index);
-                ExtensionWindow::updateSubButtonNames(getVariationNames(index));
-                ExtensionWindow::selectSubButton(getCurrentVariationIndex());
-            } else {
-                ExtensionWindow::updateSubButtonNames(getVariationNames(index));
-            }
-        }
+        ExtensionWindow::rackspaceChanged(getCurrentRackspaceIndex(), getRackspaceNames()); 
     }
 }
 
 void LibMain::OnVariationChanged(int oldIndex, int newIndex) {
     if (isGigFileLoading) return;
     if (newIndex >= 0 && oldIndex != newIndex && !inSetlistMode()) {
-        int rackspaceIndex = getCurrentRackspaceIndex();
-        if (!ExtensionWindow::isSubButtonSelected(newIndex)) {
-            ExtensionWindow::selectSubButton(newIndex);
-        ExtensionWindow::updateSubButtonNames(getVariationNames(rackspaceIndex));
-        }
+        ExtensionWindow::variationChanged(newIndex, getCurrentRackspaceIndex());
     }
 }
 
 void LibMain::OnSongChanged(int oldIndex, int newIndex) {
     if (isGigFileLoading) return;
     if (newIndex >= 0 && inSetlistMode()) {
-        ExtensionWindow::updateButtonNames(getSongNames());
-        if (!ExtensionWindow::isButtonSelected(newIndex)) { // If selected in GP directly, ensure buttons are in sync
-            ExtensionWindow::selectButton(newIndex);
-            ExtensionWindow::updateSubButtonNames(getSongPartNames(newIndex));
-            ExtensionWindow::selectSubButton(getCurrentSongpartIndex());
-        } else {
-            ExtensionWindow::updateSubButtonNames(getSongPartNames(newIndex));
-        }
+        ExtensionWindow::songChanged(newIndex, getSongNames());
     }
 }
 
 void LibMain::OnSongPartChanged(int oldIndex, int newIndex) {
     if (isGigFileLoading) return;
     if (newIndex >= 0 && oldIndex != newIndex && inSetlistMode()) {
-        int songIndex = getCurrentSongIndex();
-        if (!ExtensionWindow::isSubButtonSelected(newIndex)) {
-            ExtensionWindow::updateSubButtonNames(getSongPartNames(songIndex));
-            ExtensionWindow::selectSubButton(newIndex);
-        }
+        ExtensionWindow::songPartChanged(newIndex, getCurrentSongIndex());
     }
 }
 
 void LibMain::OnSetlistChanged(const std::string &newSetlistName) {
     if (isGigFileLoading) return;
     if (inSetlistMode()) {
-        ExtensionWindow::updateButtonNames(getSongNames());
-        ExtensionWindow::selectButton(getCurrentSongIndex());
+        ExtensionWindow::setlistChanged(getCurrentSongIndex(), getSongNames());
     }
 }
 

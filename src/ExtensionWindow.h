@@ -70,6 +70,11 @@ public:
   void resized() override;
   void buttonClicked (Button* buttonThatWasClicked) override;
   void closeWindow();
+  void static songChanged(int songIndex, std::vector<std::string> songNames);
+  void static songPartChanged(int songPartIndex, int songIndex);
+  void static setlistChanged(int songIndex, std::vector<std::string> songNames);
+  void static rackspaceChanged(int rackspaceIndex, std::vector<std::string> rackspaceNames);
+  void static variationChanged(int variationIndex, int rackspaceIndex);
   void static updateButtonLabel(const String& label);
   void static addButtons(int count);
   void static updateButtonNames(std::vector<std::string> buttonNames);
