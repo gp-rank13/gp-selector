@@ -13,6 +13,7 @@ namespace gigperformer {
 
 bool isGigFileLoading = false;
 bool isFirstGigFileOpened = false;
+std::string extensionPath;
 
 int LibMain::GetMenuCount()
 {
@@ -116,7 +117,7 @@ void LibMain::OnStatusChanged(GPStatusType status) {
         case GPStatus_GigFinishedLoading:
             isGigFileLoading = false;
             if (!isFirstGigFileOpened) {
-                readPreferencesFile("");
+                ExtensionWindow::readPreferencesFile();
                 isFirstGigFileOpened = true;
             }
             ExtensionWindow::refreshUI();
@@ -127,6 +128,7 @@ void LibMain::OnStatusChanged(GPStatusType status) {
 }
 
 void LibMain::OnOpen() {
+    extensionPath = getPathToMe();
     ExtensionWindow::initialize();
 }
 
@@ -171,7 +173,6 @@ void LibMain::OnSetlistChanged(const std::string &newSetlistName) {
 
 void LibMain::OnModeChanged(int mode) {
     if (isGigFileLoading) return;
-    readPreferencesFile("colors");
     ExtensionWindow::refreshUI();
 }
 
@@ -185,41 +186,6 @@ void LibMain::OnWidgetValueChanged(const std::string &widgetName, double newValu
         }
     } else if (widgetName == WIDGET_SCROLL) {
             ExtensionWindow::scrollWindow(newValue);
-    }
-}
-
-void LibMain::readPreferencesFile(std::string onlySection = "") {
-    std::string prefsFileText;
-    gigperformer::sdk::GPUtils::loadTextFile(getPathToMe() + separator() + PREF_FILENAME, prefsFileText);
-    StringArray lines = StringArray::fromLines(prefsFileText);
-    StringArray keyValue;
-    StringPairArray defaults;
-    StringPairArray colors;
-    String line;
-    String prefSection;
-    for (int i = 0; i < lines.size(); ++i) { 
-        line = lines[i].toStdString();
-        if (line.contains("[")) { // Preference Heading/Section
-            if (line.contains("[Defaults]")) {
-                prefSection = "Defaults";
-            } else if (line.contains("[Colors]")) {
-                prefSection = "Colors";
-            }
-        } else if (line.trim() != "") { // Process Preferences, assuming key/value pairs
-            line = line.removeCharacters(" ");
-            keyValue = StringArray::fromTokens(line,"=","");
-            if (prefSection == "Defaults") {
-                defaults.set(keyValue[0], keyValue[1]);
-            } else {
-                colors.set(keyValue[0], keyValue[1]);
-            }
-        }
-    }
-    if (onlySection == "defaults" || onlySection == "") {
-        ExtensionWindow::processPreferencesDefaults(defaults);
-    } 
-    if (onlySection == "colors" || onlySection == "") {
-        ExtensionWindow::processPreferencesColors(colors);
     }
 }
 

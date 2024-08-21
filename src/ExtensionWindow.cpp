@@ -8,6 +8,7 @@
 
 ExtensionWindow* ExtensionWindow::extension = nullptr;
 LibMain* lib = new LibMain(nullptr);     
+extern std::string extensionPath;
 
 ExtensionWindow::ExtensionWindow ()
 {
@@ -974,6 +975,35 @@ void ExtensionWindow::variationChanged(int variationIndex, int rackspaceIndex) {
             updateSubButtonNames(lib->getVariationNames(rackspaceIndex));
         }
     });
+}
+
+void ExtensionWindow::readPreferencesFile() {
+    if (extension == nullptr) return;
+    std::string prefsFilePath = extensionPath + separator() + PREF_FILENAME;
+    File file = File(prefsFilePath);
+    String prefsFileText = file.loadFileAsString();
+    StringArray lines = StringArray::fromLines(prefsFileText);
+    StringArray keyValue;
+    StringPairArray defaults;
+    StringPairArray colors;
+    String line;
+    String prefSection;
+    for (int i = 0; i < lines.size(); ++i) { 
+        line = lines[i].toStdString();
+        if (line.contains("[")) { // Preference Heading/Section
+            prefSection = line.removeCharacters("[]");
+        } else if (line.trim() != "") { // Process Preferences, assuming key/value pairs
+            line = line.removeCharacters(" ");
+            keyValue = StringArray::fromTokens(line,"=","");
+            if (prefSection.contains("Defaults")) {
+                defaults.set(keyValue[0], keyValue[1]);
+            } else if (prefSection.contains("Colors")) {
+                colors.set(keyValue[0], keyValue[1]);
+            } 
+        }
+    }
+    processPreferencesDefaults(defaults);
+    processPreferencesColors(colors);
 }
 
 void ExtensionWindow::processPreferencesDefaults(StringPairArray prefs) {
