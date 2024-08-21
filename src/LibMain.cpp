@@ -11,7 +11,7 @@ namespace gigperformer {
    } // namespace sdk
 } // namespace gigperformer
 
-bool isGigFileLoading = false;
+bool isGigFileLoading = true;
 bool isFirstGigFileOpened = false;
 std::string extensionPath;
 
