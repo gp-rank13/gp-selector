@@ -8,6 +8,7 @@
 
 ExtensionWindow* ExtensionWindow::extension = nullptr;
 LibMain* lib = new LibMain(nullptr);     
+extern std::string extensionPath;
 
 ExtensionWindow::ExtensionWindow ()
 {
@@ -915,12 +916,94 @@ void ExtensionWindow::initialize() {
     });
 }
 
-void ExtensionWindow::finalize()
-{
-    if (extension != nullptr) {
-        delete extension;
-        extension = nullptr;
+void ExtensionWindow::finalize() {
+    delete extension;
+    extension = nullptr;
+}
+
+void ExtensionWindow::songChanged(int songIndex, std::vector<std::string> songNames) {
+    if (extension == nullptr) return;
+    MessageManager::getInstance()->callAsync([songIndex, songNames]() {
+        updateButtonNames(songNames);
+        if (!isButtonSelected(songIndex)) { // If selected in GP directly, ensure buttons are in sync
+            selectButton(songIndex);
+            updateSubButtonNames(lib->getSongPartNames(songIndex));
+            selectSubButton(lib->getCurrentSongpartIndex());
+        } else {
+            updateSubButtonNames(lib->getSongPartNames(songIndex));
+        }
+    });
+}
+
+void ExtensionWindow::ExtensionWindow::songPartChanged(int songPartIndex, int songIndex) {
+    if (extension == nullptr) return;
+    MessageManager::getInstance()->callAsync([songPartIndex, songIndex]() {
+        if (!isSubButtonSelected(songPartIndex)) {
+            updateSubButtonNames(lib->getSongPartNames(songIndex));
+            selectSubButton(songPartIndex);
+        }
+    });
+}
+
+void ExtensionWindow::setlistChanged(int songIndex, std::vector<std::string> songNames) {
+    if (extension == nullptr) return;
+        ExtensionWindow::updateButtonNames(songNames);
+        ExtensionWindow::selectButton(songIndex);
+}
+
+void ExtensionWindow::rackspaceChanged(int rackspaceIndex, std::vector<std::string> rackspaceNames) {
+    if (extension == nullptr) return;
+    MessageManager::getInstance()->callAsync([rackspaceIndex, rackspaceNames]() {
+        if (rackspaceIndex >= 0) {
+            updateButtonNames(rackspaceNames);
+            if (!isButtonSelected(rackspaceIndex)) { // If selected in GP directly, ensure buttons are in sync
+                selectButton(rackspaceIndex);
+                updateSubButtonNames(lib->getVariationNames(rackspaceIndex));
+                selectSubButton(lib->getCurrentVariationIndex());
+            } else {
+                updateSubButtonNames(lib->getVariationNames(rackspaceIndex));
+            }
+        }
+    });
+}
+
+void ExtensionWindow::variationChanged(int variationIndex, int rackspaceIndex) {
+    if (extension == nullptr) return;
+    MessageManager::getInstance()->callAsync([variationIndex, rackspaceIndex]() {
+        if (!isSubButtonSelected(variationIndex)) {
+            selectSubButton(variationIndex);
+            updateSubButtonNames(lib->getVariationNames(rackspaceIndex));
+        }
+    });
+}
+
+void ExtensionWindow::readPreferencesFile() {
+    if (extension == nullptr) return;
+    std::string prefsFilePath = extensionPath + separator() + PREF_FILENAME;
+    File file = File(prefsFilePath);
+    String prefsFileText = file.loadFileAsString();
+    StringArray lines = StringArray::fromLines(prefsFileText);
+    StringArray keyValue;
+    StringPairArray defaults;
+    StringPairArray colors;
+    String line;
+    String prefSection;
+    for (int i = 0; i < lines.size(); ++i) { 
+        line = lines[i].toStdString();
+        if (line.contains("[")) { // Preference Heading/Section
+            prefSection = line.removeCharacters("[]");
+        } else if (line.trim() != "") { // Process Preferences, assuming key/value pairs
+            line = line.removeCharacters(" ");
+            keyValue = StringArray::fromTokens(line,"=","");
+            if (prefSection.contains("Defaults")) {
+                defaults.set(keyValue[0], keyValue[1]);
+            } else if (prefSection.contains("Colors")) {
+                colors.set(keyValue[0], keyValue[1]);
+            } 
+        }
     }
+    processPreferencesDefaults(defaults);
+    processPreferencesColors(colors);
 }
 
 void ExtensionWindow::processPreferencesDefaults(StringPairArray prefs) {

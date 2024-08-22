@@ -13,6 +13,7 @@ namespace gigperformer {
 
 bool isGigFileLoading = true;
 bool isFirstGigFileOpened = false;
+std::string extensionPath;
 
 int LibMain::GetMenuCount()
 {
@@ -35,11 +36,11 @@ void LibMain::InvokeMenu(int index)
             switch (index)
                {
                   case 0:
-                      ExtensionWindow::displayWindow(true);
-                     break;
+                    ExtensionWindow::displayWindow(true);
+                    break;
                   case 1:
-                     ExtensionWindow::displayWindow(false);
-                     break;
+                    ExtensionWindow::displayWindow(false);
+                    break;
                   case 2:
                     ExtensionWindow::toggleZeroBasedNumbering();
                     break;
@@ -53,7 +54,7 @@ void LibMain::InvokeMenu(int index)
                     ExtensionWindow::toggleThickBorders();
                     break;
                   default:
-                     break;   
+                    break;   
                }
          }
 }
@@ -116,7 +117,7 @@ void LibMain::OnStatusChanged(GPStatusType status) {
         case GPStatus_GigFinishedLoading:
             isGigFileLoading = false;
             if (!isFirstGigFileOpened) {
-                readPreferencesFile("");
+                ExtensionWindow::readPreferencesFile();
                 isFirstGigFileOpened = true;
             }
             ExtensionWindow::refreshUI();
@@ -127,6 +128,7 @@ void LibMain::OnStatusChanged(GPStatusType status) {
 }
 
 void LibMain::OnOpen() {
+    extensionPath = getPathToMe();
     ExtensionWindow::initialize();
 }
 
@@ -137,67 +139,40 @@ void LibMain::OnClose() {
 void LibMain::OnRackspaceActivated() {
     if (isGigFileLoading) return;
     if (!inSetlistMode()) {
-        int index = getCurrentRackspaceIndex();
-        if (index >= 0) {
-            ExtensionWindow::updateButtonNames(getRackspaceNames());
-            if (!ExtensionWindow::isButtonSelected(index)) { // If selected in GP directly, ensure buttons are in sync
-                ExtensionWindow::selectButton(index);
-                ExtensionWindow::updateSubButtonNames(getVariationNames(index));
-                ExtensionWindow::selectSubButton(getCurrentVariationIndex());
-            } else {
-                ExtensionWindow::updateSubButtonNames(getVariationNames(index));
-            }
-        }
+        ExtensionWindow::rackspaceChanged(getCurrentRackspaceIndex(), getRackspaceNames()); 
     }
 }
 
 void LibMain::OnVariationChanged(int oldIndex, int newIndex) {
     if (isGigFileLoading) return;
     if (newIndex >= 0 && oldIndex != newIndex && !inSetlistMode()) {
-        int rackspaceIndex = getCurrentRackspaceIndex();
-        if (!ExtensionWindow::isSubButtonSelected(newIndex)) {
-            ExtensionWindow::selectSubButton(newIndex);
-        ExtensionWindow::updateSubButtonNames(getVariationNames(rackspaceIndex));
-        }
+        ExtensionWindow::variationChanged(newIndex, getCurrentRackspaceIndex());
     }
 }
 
 void LibMain::OnSongChanged(int oldIndex, int newIndex) {
     if (isGigFileLoading) return;
     if (newIndex >= 0 && inSetlistMode()) {
-        ExtensionWindow::updateButtonNames(getSongNames());
-        if (!ExtensionWindow::isButtonSelected(newIndex)) { // If selected in GP directly, ensure buttons are in sync
-            ExtensionWindow::selectButton(newIndex);
-            ExtensionWindow::updateSubButtonNames(getSongPartNames(newIndex));
-            ExtensionWindow::selectSubButton(getCurrentSongpartIndex());
-        } else {
-            ExtensionWindow::updateSubButtonNames(getSongPartNames(newIndex));
-        }
+        ExtensionWindow::songChanged(newIndex, getSongNames());
     }
 }
 
 void LibMain::OnSongPartChanged(int oldIndex, int newIndex) {
     if (isGigFileLoading) return;
     if (newIndex >= 0 && oldIndex != newIndex && inSetlistMode()) {
-        int songIndex = getCurrentSongIndex();
-        if (!ExtensionWindow::isSubButtonSelected(newIndex)) {
-            ExtensionWindow::updateSubButtonNames(getSongPartNames(songIndex));
-            ExtensionWindow::selectSubButton(newIndex);
-        }
+        ExtensionWindow::songPartChanged(newIndex, getCurrentSongIndex());
     }
 }
 
 void LibMain::OnSetlistChanged(const std::string &newSetlistName) {
     if (isGigFileLoading) return;
     if (inSetlistMode()) {
-        ExtensionWindow::updateButtonNames(getSongNames());
-        ExtensionWindow::selectButton(getCurrentSongIndex());
+        ExtensionWindow::setlistChanged(getCurrentSongIndex(), getSongNames());
     }
 }
 
 void LibMain::OnModeChanged(int mode) {
     if (isGigFileLoading) return;
-    readPreferencesFile("colors");
     ExtensionWindow::refreshUI();
 }
 
@@ -211,41 +186,6 @@ void LibMain::OnWidgetValueChanged(const std::string &widgetName, double newValu
         }
     } else if (widgetName == WIDGET_SCROLL) {
             ExtensionWindow::scrollWindow(newValue);
-    }
-}
-
-void LibMain::readPreferencesFile(std::string onlySection = "") {
-    std::string prefsFileText;
-    gigperformer::sdk::GPUtils::loadTextFile(getPathToMe() + separator() + PREF_FILENAME, prefsFileText);
-    StringArray lines = StringArray::fromLines(prefsFileText);
-    StringArray keyValue;
-    StringPairArray defaults;
-    StringPairArray colors;
-    String line;
-    String prefSection;
-    for (int i = 0; i < lines.size(); ++i) { 
-        line = lines[i].toStdString();
-        if (line.contains("[")) { // Preference Heading/Section
-            if (line.contains("[Defaults]")) {
-                prefSection = "Defaults";
-            } else if (line.contains("[Colors]")) {
-                prefSection = "Colors";
-            }
-        } else if (line.trim() != "") { // Process Preferences, assuming key/value pairs
-            line = line.removeCharacters(" ");
-            keyValue = StringArray::fromTokens(line,"=","");
-            if (prefSection == "Defaults") {
-                defaults.set(keyValue[0], keyValue[1]);
-            } else {
-                colors.set(keyValue[0], keyValue[1]);
-            }
-        }
-    }
-    if (onlySection == "defaults" || onlySection == "") {
-        ExtensionWindow::processPreferencesDefaults(defaults);
-    } 
-    if (onlySection == "colors" || onlySection == "") {
-        ExtensionWindow::processPreferencesColors(colors);
     }
 }
 
