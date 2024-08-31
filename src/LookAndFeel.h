@@ -51,14 +51,23 @@ public:
     Colour buttonColor = Colour::fromString(button.getProperties()["colour"].toString());
 
     if (button.getToggleState()) {
-      g.setColour (Colour(0xff6a6a6a));
+      if (buttonColor == Colour::fromString(DEFAULT_BUTTON_COLOR)) {
+        g.setColour (Colour(0xff6A6A6A));
+      } else {
+        g.setColour (buttonColor);
+      }      
     } else if (isButtonHighlighted && !isButtonDown) {
-      g.setColour (Colour(0xff2f2f2f));
+      if (buttonColor == Colour::fromString(DEFAULT_BUTTON_COLOR)) {
+        g.setColour (buttonColor.withBrightness(buttonColor.getBrightness() + 0.1f));
+      } else {
+        g.setColour (buttonColor.withBrightness(buttonColor.getBrightness() - 0.1f));
+      }
     } else if (isButtonDown) {
       g.setColour (Colour(0xff9a9a9a));
     } else {
       g.setColour (buttonColor);
     }   
+    
     g.fillRoundedRectangle (buttonArea, cornerSize);
     if (button.getToggleState()) {
       g.setColour (Colours::white);

@@ -110,6 +110,8 @@ public:
   void static processPreferencesDefaults(StringPairArray prefs);
   void static processPreferencesColors(StringPairArray prefs);
   void static removeColorKeywordFromName(bool remove);
+  void static applyColorToRacksAndSongs(bool apply);
+  void static applyColorToVariationsAndParts(bool apply);
   void static refreshUI();
   void static updateButtonLnF(std::string LnFname);
   void static setWindowPositionAndSize(int x, int y, int w, int h);
