@@ -19,7 +19,7 @@ Mac users will need to move the _libGPSelector.dylib_ file into this folder and 
 ```
 /Users/Shared/Gig Performer/Extensions
 ```
-Mac users will also need to authorize the extension via System Preferences > Privacy & Security. Scroll down until you locate an entry that references the extension. Allow it to be loaded and then restart Gig Performer.
+Mac users will also need to authorize the extension via System Settings > Privacy & Security. Scroll down until you locate an entry that references the extension. Allow it to be loaded and then restart Gig Performer.
 
 Windows users will need to move the _GPSelector.dll_ file into this folder and then restart Gig Performer:
 ```
@@ -64,7 +64,9 @@ A knob or fader widget can be used to scroll the list of songs/rackspaces. In th
 
 ### Custom Button Colors
 
-Custom colors can be defined for the variation and song part buttons. This is managed via the optional preferences file (refer below), in which a set of keywords can be listed, along with a corresponding color value. Any variation or song part names that contain/match one of these keywords will have the color applied to the button.
+Custom colors can be defined for the rackspace/song buttons, and the variation/song part buttons. This is managed via the optional preferences file (refer below), in which a set of keywords can be listed, along with a corresponding color value. Any rackspace, song, variation, or song part name that contains one of these keywords will have the color applied to the button. You can also enter a full name instead of a keyword (e.g. the full rackspace name) if you want to apply the color more specifically.
+
+The preferences file also allows you to control whether the colors are applied to rackspaces and songs, and/or variations and song parts.
 
 <img width="180" alt="gp-selector-custom-colors" src="https://user-images.githubusercontent.com/107261652/189472228-be4a7592-e6a3-4622-98c1-8aec16dd28ea.png"> <img width="182" alt="gp-selector-custom-colors-prefs" src="https://user-images.githubusercontent.com/107261652/189472733-694038d4-d1cb-447e-a1e9-073cc8fff3ce.png">
 
@@ -80,6 +82,8 @@ LargeScrollArea = false
 ThickBorders = false
 BorderColor = FFE5E5E5
 RemoveColorKeywordFromName = false
+ApplyColorToRacksAndSongs = true
+ApplyColorToVariationsAndParts = true
 PositionAndSize = 100,100,300,600
 
 [Colors]
