@@ -591,9 +591,24 @@ void ExtensionWindow::updateButtonNames(std::vector<std::string> buttonNames) {
     }
     for (auto i = 0; i < currentButtonCount; ++i) {
         if (i < newButtonCount) {
-            extension->buttons[i]->setButtonText(buttonNames[i]);
+            String name = buttonNames[i];
+            String color = DEFAULT_BUTTON_COLOR;
+            extension->buttons[i]->setButtonText(name);
             extension->buttons[i]->setVisible(true);
-            extension->buttons[i]->getProperties().set("colour", DEFAULT_BUTTON_COLOR);
+            if (extension->preferences->getProperty("ApplyColorToRacksAndSongs")) {
+                StringArray keys = extension->buttonColors.getAllKeys();
+                for (int j = 0; j < keys.size(); ++j ) {
+                    if (name.contains(keys[j])) {
+                        color = extension->buttonColors.getValue(keys[j],"");
+                        if (extension->preferences->getProperty("RemoveColorKeywordFromName")) {
+                            name = name.replace(keys[j], "");
+                            name = name.replace("  ", " ");
+                            extension->buttons[i]->setButtonText(name);
+                        }
+                    }
+                }
+            }
+            extension->buttons[i]->getProperties().set("colour", color);
             extension->buttons[i]->getProperties().set("thickBorder", border);
         } else {
             extension->buttons[i]->setButtonText("");
@@ -657,14 +672,16 @@ void ExtensionWindow::updateSubButtonNames(std::vector<std::string> buttonNames)
             extension->subButtons[i]->setButtonText(name);
             extension->subButtons[i]->getProperties().set("name", name);
             extension->subButtons[i]->setVisible(true);
-            StringArray keys = extension->buttonColors.getAllKeys();
-            for (int j = 0; j < keys.size(); ++j ) {
-                if (name.contains(keys[j])) {
-                    color = extension->buttonColors.getValue(keys[j],"");
-                    if (extension->preferences->getProperty("RemoveColorKeywordFromName")) {
-                        name = name.replace(keys[j], "");
-                        name = name.replace("  ", " ");
-                        extension->subButtons[i]->setButtonText(name);
+            if (extension->preferences->getProperty("ApplyColorToVariationsAndParts")) {
+                StringArray keys = extension->buttonColors.getAllKeys();
+                for (int j = 0; j < keys.size(); ++j ) {
+                    if (name.contains(keys[j])) {
+                        color = extension->buttonColors.getValue(keys[j],"");
+                        if (extension->preferences->getProperty("RemoveColorKeywordFromName")) {
+                            name = name.replace(keys[j], "");
+                            name = name.replace("  ", " ");
+                            extension->subButtons[i]->setButtonText(name);
+                        }
                     }
                 }
             }
@@ -993,12 +1010,11 @@ void ExtensionWindow::readPreferencesFile() {
         if (line.contains("[")) { // Preference Heading/Section
             prefSection = line.removeCharacters("[]");
         } else if (line.trim() != "") { // Process Preferences, assuming key/value pairs
-            line = line.removeCharacters(" ");
             keyValue = StringArray::fromTokens(line,"=","");
             if (prefSection.contains("Defaults")) {
-                defaults.set(keyValue[0], keyValue[1]);
+                defaults.set(keyValue[0].trim(), keyValue[1].trim());
             } else if (prefSection.contains("Colors")) {
-                colors.set(keyValue[0], keyValue[1]);
+                colors.set(keyValue[0].trim(), keyValue[1].trim());
             } 
         }
     }
@@ -1011,6 +1027,8 @@ void ExtensionWindow::processPreferencesDefaults(StringPairArray prefs) {
     extension->preferences->setProperty("ImmediateSwitching", prefs.getValue("ImmediateSwitching", "") == "false" ? false : true);
     setLargeScrollArea(prefs.getValue("LargeScrollArea", "") == "true" ? true : false);
     removeColorKeywordFromName(prefs.getValue("RemoveColorKeywordFromName", "") == "true" ? true : false); 
+    applyColorToRacksAndSongs(prefs.getValue("ApplyColorToRacksAndSongs", "") == "false" ? false : true); 
+    applyColorToVariationsAndParts(prefs.getValue("ApplyColorToVariationsAndParts", "") == "false" ? false : true); 
     StringArray positionSize = StringArray::fromTokens(prefs.getValue("PositionAndSize", DEFAULT_WINDOW_POSITION), ",", "");
     setWindowPositionAndSize(positionSize[0].getIntValue(), positionSize[1].getIntValue(), positionSize[2].getIntValue(), positionSize[3].getIntValue());
     extension->preferences->setProperty("ThickBorders", prefs.getValue("ThickBorders", "") == "true" ? true : false);
@@ -1023,6 +1041,14 @@ void ExtensionWindow::processPreferencesColors(StringPairArray prefs) {
 
 void ExtensionWindow::removeColorKeywordFromName(bool remove) {
     extension->preferences->setProperty("RemoveColorKeywordFromName", remove); 
+}
+
+void ExtensionWindow::applyColorToRacksAndSongs(bool apply) {
+    extension->preferences->setProperty("ApplyColorToRacksAndSongs", apply);
+}
+
+void ExtensionWindow::applyColorToVariationsAndParts(bool apply) {
+    extension->preferences->setProperty("ApplyColorToVariationsAndParts", apply);
 }
 
 void ExtensionWindow::updateClock(const String& formattedTime) {

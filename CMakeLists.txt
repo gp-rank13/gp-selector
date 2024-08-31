@@ -12,7 +12,7 @@ set(CMAKE_CXX_EXTENSIONS NO)
 # Let's choose a name and version for the extension. Change the name to your
 # liking. The version should be a string like "1.0".
 set(PROJECT_NAME "GPSelector") # Change this to your liking
-project(${PROJECT_NAME} VERSION 1.7)
+project(${PROJECT_NAME} VERSION 1.7.1)
 
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/dependencies.cmake")
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/juce-shared-library.cmake")
