@@ -594,6 +594,7 @@ void ExtensionWindow::updateButtonNames(std::vector<std::string> buttonNames) {
             String name = buttonNames[i];
             String color = DEFAULT_BUTTON_COLOR;
             extension->buttons[i]->setButtonText(name);
+            extension->buttons[i]->getProperties().set("name", name);
             extension->buttons[i]->setVisible(true);
             if (extension->preferences->getProperty("ApplyColorToRacksAndSongs")) {
                 StringArray keys = extension->buttonColors.getAllKeys();
@@ -613,6 +614,8 @@ void ExtensionWindow::updateButtonNames(std::vector<std::string> buttonNames) {
         } else {
             extension->buttons[i]->setButtonText("");
             extension->buttons[i]->setVisible(false);
+            extension->buttons[i]->getProperties().set("colour", DEFAULT_BUTTON_COLOR);
+            extension->buttons[i]->getProperties().set("name", "");
         }
     } 
     extension->resized();
@@ -626,7 +629,7 @@ void ExtensionWindow::compareButtonNames(std::vector<std::string> newButtonNames
         refreshUI();
     } else {
         for (auto i = 0; i < newButtonCount; ++i) {
-            if (i < buttonCount && newButtonNames[i] != extension->buttons[i]->getButtonText()) {
+            if (i < buttonCount && newButtonNames[i] != extension->buttons[i]->getProperties()["name"]) {
                 refreshUI();
             }
         }
