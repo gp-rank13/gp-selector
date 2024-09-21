@@ -20,9 +20,11 @@ ExtensionWindow::ExtensionWindow ()
     preferences.reset (new DynamicObject);
     preferences->setProperty("ImmediateSwitching", true);
     preferences->setProperty("LargeScrollArea", false);
+    preferences->setProperty("DisplayNumbers", true);
     preferences->setProperty("ZeroBasedNumbers", false);
     preferences->setProperty("RemoveColorKeywordFromName", false);
     preferences->setProperty("ThickBorders", false);
+    preferences->setProperty("FixedHeight", "0");
 
     header.reset (new Label ("header", ""));
     addAndMakeVisible (header.get());
@@ -243,9 +245,12 @@ Image ExtensionWindow::getWindowIcon() {
 
 void ExtensionWindow::resized()
 {
-    int minWindowWidth = 180;
-    int minButtonHeight = 50;
-    int largeScrollAreaWidth = 50;
+    int minWindowWidth = MIN_WINDOW_WIDTH;
+    int largeScrollAreaWidth = LARGE_SCROLL_AREA_WIDTH;
+    int fixedButtonHeight = jmin((int)preferences->getProperty("FixedHeight"), MAX_BUTTON_HEIGHT);
+    bool hasFixedHeight = fixedButtonHeight == 0 ? false : true;
+    int minButtonHeight = hasFixedHeight ? MIN_BUTTON_HEIGHT : DEFAULT_BUTTON_HEIGHT;
+
     Point<int> viewPos = viewport.getViewPosition();
     int columns = 1;
     int buttonHeightRatio = 5; // Ratio of width:height
@@ -260,6 +265,11 @@ void ExtensionWindow::resized()
     bool largeScrollArea = preferences->getProperty("LargeScrollArea");
     auto buttonSize = (largeScrollArea) ? bounds.getWidth() - largeScrollAreaWidth : bounds.getWidth();
     int buttonHeight = ((int)(buttonSize/buttonHeightRatio) < minButtonHeight) ? minButtonHeight : (int)(buttonSize / buttonHeightRatio);
+    if (hasFixedHeight) {
+        buttonHeight = jmax(minButtonHeight, fixedButtonHeight);
+    } else {
+        buttonHeight = jmin(buttonHeight, MAX_BUTTON_HEIGHT);
+    }
     auto padding = buttonHeight * 0.1;
     int rowHeight = 1;
     auto x = draggableResizer.getX();
@@ -401,6 +411,12 @@ void ExtensionWindow::refreshUI() {
 
 void ExtensionWindow::setTitleBarName(const String& name) {
     extension->extensionWindow->setName(name);
+}
+
+void ExtensionWindow::toggleDisplayNumbering() {
+    bool status = extension->preferences->getProperty("DisplayNumbers");
+    extension->preferences->setProperty("DisplayNumbers", !status); 
+    refreshUI();
 }
 
 void ExtensionWindow::setZeroBasedNumbering(bool zeroBased) {
@@ -585,6 +601,8 @@ void ExtensionWindow::updateButtonNames(std::vector<std::string> buttonNames) {
     int newButtonCount = buttonNames.size();
     int currentButtonCount = extension->buttons.size();
     bool border = extension->preferences->getProperty("ThickBorders");
+    bool displayNumber = extension->preferences->getProperty("DisplayNumbers");
+    String textColor = extension->preferences->getProperty("TextColor");
     if (newButtonCount > currentButtonCount) {
         addButtons(newButtonCount-currentButtonCount);
         currentButtonCount = newButtonCount;
@@ -609,12 +627,15 @@ void ExtensionWindow::updateButtonNames(std::vector<std::string> buttonNames) {
                     }
                 }
             }
-            extension->buttons[i]->getProperties().set("colour", color);
+            extension->buttons[i]->getProperties().set("color", color);
+            extension->buttons[i]->getProperties().set("textColor", textColor);
+            extension->buttons[i]->getProperties().set("displayNumber", displayNumber);
             extension->buttons[i]->getProperties().set("thickBorder", border);
         } else {
             extension->buttons[i]->setButtonText("");
             extension->buttons[i]->setVisible(false);
-            extension->buttons[i]->getProperties().set("colour", DEFAULT_BUTTON_COLOR);
+            extension->buttons[i]->getProperties().set("color", DEFAULT_BUTTON_COLOR);
+            extension->buttons[i]->getProperties().set("textColor", DEFAULT_BUTTON_TEXT_COLOR);
             extension->buttons[i]->getProperties().set("name", "");
         }
     } 
@@ -663,6 +684,7 @@ void ExtensionWindow::updateSubButtonNames(std::vector<std::string> buttonNames)
     int currentButtonCount = extension->subButtons.size();
     bool border = extension->preferences->getProperty("ThickBorders");
     String borderColor = extension->preferences->getProperty("BorderColor");
+    String textColor = extension->preferences->getProperty("TextColor");
 
     if (newButtonCount > currentButtonCount) {
         addSubButtons(newButtonCount-currentButtonCount);
@@ -688,13 +710,15 @@ void ExtensionWindow::updateSubButtonNames(std::vector<std::string> buttonNames)
                     }
                 }
             }
-            extension->subButtons[i]->getProperties().set("colour", color);
+            extension->subButtons[i]->getProperties().set("color", color);
+            extension->subButtons[i]->getProperties().set("textColor", textColor);
             extension->subButtons[i]->getProperties().set("thickBorder", border);
             extension->subButtons[i]->getProperties().set("borderColor", borderColor);
         } else {
             extension->subButtons[i]->setButtonText("");
             extension->subButtons[i]->setVisible(false);
-            extension->subButtons[i]->getProperties().set("colour", DEFAULT_SUBBUTTON_COLOR);
+            extension->subButtons[i]->getProperties().set("color", DEFAULT_SUBBUTTON_COLOR);
+            extension->subButtons[i]->getProperties().set("textColor", DEFAULT_SUBBUTTON_TEXT_COLOR);
             extension->subButtons[i]->getProperties().set("name", "");
         }
     }
@@ -1026,6 +1050,7 @@ void ExtensionWindow::readPreferencesFile() {
 }
 
 void ExtensionWindow::processPreferencesDefaults(StringPairArray prefs) {
+    extension->preferences->setProperty("DisplayNumbers", prefs.getValue("DisplayNumbers", "") == "false" ? false : true);
     setZeroBasedNumbering(prefs.getValue("ZeroBasedNumbers", "") == "true" ? true : false);
     extension->preferences->setProperty("ImmediateSwitching", prefs.getValue("ImmediateSwitching", "") == "false" ? false : true);
     setLargeScrollArea(prefs.getValue("LargeScrollArea", "") == "true" ? true : false);
@@ -1036,6 +1061,8 @@ void ExtensionWindow::processPreferencesDefaults(StringPairArray prefs) {
     setWindowPositionAndSize(positionSize[0].getIntValue(), positionSize[1].getIntValue(), positionSize[2].getIntValue(), positionSize[3].getIntValue());
     extension->preferences->setProperty("ThickBorders", prefs.getValue("ThickBorders", "") == "true" ? true : false);
     extension->preferences->setProperty("BorderColor", prefs.getValue("BorderColor", DEFAULT_BORDER_COLOR));
+    extension->preferences->setProperty("TextColor", prefs.getValue("TextColor", DEFAULT_BUTTON_TEXT_COLOR));
+    extension->preferences->setProperty("FixedHeight", prefs.getValue("FixedHeight", "0"));
 }
 
 void ExtensionWindow::processPreferencesColors(StringPairArray prefs) {

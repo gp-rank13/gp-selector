@@ -66,7 +66,7 @@ A knob or fader widget can be used to scroll the list of songs/rackspaces. In th
 
 Custom colors can be defined for the rackspace/song buttons, and the variation/song part buttons. This is managed via the optional preferences file (refer below), in which a set of keywords can be listed, along with a corresponding color value. Any rackspace, song, variation, or song part name that contains one of these keywords will have the color applied to the button. You can also enter a full name instead of a keyword (e.g. the full rackspace name) if you want to apply the color more specifically.
 
-The preferences file also allows you to control whether the colors are applied to rackspaces and songs, and/or variations and song parts.
+The preferences file also allows you to control whether the colors are applied to rackspaces and songs, and/or variations and song parts. An optional preference for **TextColor** will apply a custom text color to all buttons.
 
 <img width="180" alt="gp-selector-custom-colors" src="https://user-images.githubusercontent.com/107261652/189472228-be4a7592-e6a3-4622-98c1-8aec16dd28ea.png"> <img width="182" alt="gp-selector-custom-colors-prefs" src="https://user-images.githubusercontent.com/107261652/189472733-694038d4-d1cb-447e-a1e9-073cc8fff3ce.png">
 
@@ -76,6 +76,7 @@ The optional preferences file included in the release download (_GPSelectorPrefs
 
 ```
 [Defaults]
+DisplayNumbers = true
 ZeroBasedNumbers = false
 ImmediateSwitching = true
 LargeScrollArea = false
@@ -92,6 +93,10 @@ Crunch = FFBF6509
 Lead = FF960303
 ```
 The option **RemoveColorKeywordFromName** will remove the keyword you use in the Colors section from the displayed variation or song part name e.g. a variation called "My Clean Guitar" will become "My Guitar". 
+
+An optional preference for **TextColor** will apply a custom text color to all buttons. 
+
+Another optional preference, **FixedHeight**, will keep the buttons at the specified height (the default behavior is an automatic resizing as the window size changes). The minimum allowed height is 40 and maximum is 100. For context, the default minimum is 50.
 
 >Use the Panel widgets in Gig Performer to find the color codes. Transparency won’t be needed, so the first two characters should always be "FF" (which is the alpha/transparency setting).
 

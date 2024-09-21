@@ -95,10 +95,12 @@ public:
   void static selectSubButton(int index);
   void static selectButtonAndSubButton(int index, std::vector<std::string> buttonNames);
   void static updateClock(const String& formattedTime);
+  void static setDisplayNumbering(bool display);
   void static setZeroBasedNumbering(bool zeroBased);
   void static setImmediateSwitching(bool immediateSwitch);
   void static setLargeScrollArea(bool largeScrollArea);
   void static updateViewportPositionForSubButtons();
+  void static toggleDisplayNumbering();
   void static toggleZeroBasedNumbering();
   void static toggleImmediateSwitching();
   void static toggleLargeScrollArea();  

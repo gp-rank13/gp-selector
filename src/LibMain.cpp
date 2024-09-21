@@ -42,15 +42,17 @@ void LibMain::InvokeMenu(int index)
                     ExtensionWindow::displayWindow(false);
                     break;
                   case 2:
+                    ExtensionWindow::toggleDisplayNumbering();
+                  case 3:
                     ExtensionWindow::toggleZeroBasedNumbering();
                     break;
-                  case 3:
+                  case 4:
                     ExtensionWindow::toggleImmediateSwitching();
                     break;
-                  case 4:
+                  case 5:
                     ExtensionWindow::toggleLargeScrollArea();
                     break;
-                  case 5:
+                  case 6:
                     ExtensionWindow::toggleThickBorders();
                     break;
                   default:
