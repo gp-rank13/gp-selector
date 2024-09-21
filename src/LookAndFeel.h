@@ -13,6 +13,9 @@ public:
 	{
 		Font font (button.getHeight () * 0.25f);
 		g.setFont (font);
+    Colour textColor = Colour::fromString(button.getProperties()["textColor"].toString());
+    Colour selectedTextColor = Colours::white;
+    if (textColor != Colour::fromString(DEFAULT_BUTTON_TEXT_COLOR)) selectedTextColor = textColor;
 		g.setColour (button.findColour (button.getToggleState () ? TextButton::textColourOnId
 			: TextButton::textColourOffId)
       .withMultipliedAlpha (0.5f));
@@ -26,18 +29,22 @@ public:
     const int rows = 1;
 		
     // Button number
-    Font font1 (juce::jmax(button.getHeight () * 0.4f, 16.f));
-    g.setFont (font1);
-    auto buttonNumber = button.getProperties()["displayIndex"];
-    auto numberWidth = font1.getStringWidthFloat(button.getName()); 
-    g.drawFittedText (buttonNumber,
-      leftIndent, yIndent, numberWidth, buttonHeight - yIndent * 2,
-      Justification::right, rows, 0.5f);
+    float numberWidth = 0.0;
+    bool displayNumber = button.getProperties()["displayNumber"];
+    if (displayNumber) {
+      Font font1 (juce::jmax(button.getHeight () * 0.4f, 16.f));
+      g.setFont (font1);
+      auto buttonNumber = button.getProperties()["displayIndex"];
+      numberWidth = font1.getStringWidthFloat(button.getName()); 
+      g.drawFittedText (buttonNumber,
+        leftIndent, yIndent, numberWidth, buttonHeight - yIndent * 2,
+        Justification::right, rows, 0.5f);
+    }
 
     // Button Name
     Font font2 (juce::jmax(button.getHeight () * 0.4f, 16.f));
     g.setFont (font2);
-    g.setColour (button.getToggleState () ? Colours::white : Colour(0xffc5c5c5));
+    g.setColour (button.getToggleState () ? selectedTextColor : textColor);
     g.drawFittedText (buttonText,
       leftIndent + (numberWidth * 1.5), yIndent, availableWidth - (numberWidth * 1.5), buttonHeight - yIndent * 2,
       Justification::left, rows, 1.0f);
@@ -48,7 +55,7 @@ public:
     auto buttonArea = button.getLocalBounds().toFloat();
     float borderSize = buttonArea.getHeight() * ((button.getProperties()["thickBorder"]) ? 0.08 : 0.04);
     float cornerSize = buttonArea.getHeight() * 0.08;
-    Colour buttonColor = Colour::fromString(button.getProperties()["colour"].toString());
+    Colour buttonColor = Colour::fromString(button.getProperties()["color"].toString());
 
     if (button.getToggleState()) {
       if (buttonColor == Colour::fromString(DEFAULT_BUTTON_COLOR)) {
@@ -84,6 +91,9 @@ public:
 	{
 		Font font (button.getHeight () * 0.25f);
 		g.setFont (font);
+    Colour textColor = Colour::fromString(button.getProperties()["textColor"].toString());
+    Colour selectedTextColor = Colours::white;
+    if (textColor != Colour::fromString(DEFAULT_SUBBUTTON_TEXT_COLOR)) selectedTextColor = textColor;
 		g.setColour (button.findColour (button.getToggleState () ? TextButton::textColourOnId
 			: TextButton::textColourOffId)
       .withMultipliedAlpha (0.5f));
@@ -97,7 +107,7 @@ public:
     // Button Name
     Font font2 (juce::jmax(buttonHeight * 0.4, 16.0));
     g.setFont (font2);
-    g.setColour (button.getToggleState() ? Colours::white : Colour(0xffe5e5e5));
+    g.setColour (button.getToggleState() ? selectedTextColor : textColor);
     auto availableWidth = buttonWidth - leftIndent;
     g.drawFittedText (buttonText,
       leftIndent, yIndent, availableWidth, buttonHeight - yIndent * 2,
@@ -112,7 +122,7 @@ public:
     buttonArea.setLeft(padding);
     float borderSize = buttonArea.getHeight() * (button.getProperties()["thickBorder"] ? 0.08 : 0.04);
     float cornerSize = buttonArea.getHeight() * 0.08;
-    Colour buttonColor = Colour::fromString(button.getProperties()["colour"].toString());
+    Colour buttonColor = Colour::fromString(button.getProperties()["color"].toString());
     Colour borderColour = Colour::fromString(button.getProperties()["borderColor"].toString());
 
     if (button.getToggleState()) {
@@ -214,7 +224,7 @@ public:
     auto buttonArea = button.getLocalBounds().toFloat().reduced (0.5f);
     float cornerSize = 5.f;
     Colour myColour = Colour(0xff1f1f1f);
-    String btnColour = button.getProperties()["colour"];
+    String btnColour = button.getProperties()["color"];
     myColour = Colour::fromString(btnColour);
 
     if (button.getToggleState()) {
